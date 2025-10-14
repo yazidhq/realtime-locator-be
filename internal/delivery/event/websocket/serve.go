@@ -1,7 +1,8 @@
 package websocket
 
 import (
-	"log"
+	"TeamTrackerBE/internal/utils/responses"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -15,8 +16,7 @@ var upgrader = websocket.Upgrader{
 func ServeWs(w http.ResponseWriter, r *http.Request, groupID, userID string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("upgrade error:", err)
-		return
+		responses.NewInternalServerError(fmt.Sprintf("upgrader websocket error: %s", err))
 	}
 
 	hub := GetHub(groupID)
