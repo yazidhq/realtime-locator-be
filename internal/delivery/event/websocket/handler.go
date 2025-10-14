@@ -1,32 +1,18 @@
 package websocket
 
 import (
-	"log"
-	"net/http"
+	"TeamTrackerBE/internal/utils/responses"
 
-	"github.com/gorilla/websocket"
+	"github.com/gin-gonic/gin"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true },
-}
+func LiveTrack(c *gin.Context) {
+	groupID := c.Query("group_id")
+	userID := c.Query("user_id")
 
-func ServeWs(h *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println("upgrade error:", err)
-		return
+	if groupID == "" || userID == "" {
+		responses.NewBadRequestError("group id and user id is required")
 	}
 
-	client := &Client{
-		ID:     r.RemoteAddr,
-		Conn:   conn,
-		Send:   make(chan []byte, 256),
-		HubRef: h,
-	}
-
-	h.Register <- client
-
-	go client.WritePump()
-	go client.ReadPump()
+	ServeWs(c.Writer, c.Request, groupID, userID)
 }

@@ -2,86 +2,67 @@ package websocket
 
 import (
 	"log"
-	"time"
-
-	"github.com/gorilla/websocket"
 )
 
-type Client struct {
-	ID     string
-	Conn   *websocket.Conn
-	Send   chan []byte
-	HubRef *Hub
-	Role   string
-}
-
+// Hub mewakili satu grup
 type Hub struct {
-	Clients    map[*Client]bool
+	GroupID    string
+	Clients    map[string]*Client
 	Broadcast  chan []byte
 	Register   chan *Client
 	Unregister chan *Client
 }
 
-func NewHub() *Hub {
-	return &Hub{
-		Clients:    make(map[*Client]bool),
+// Semua grup disimpan di map global
+var hubs = make(map[string]*Hub)
+
+// GetHub mengambil atau membuat hub baru untuk group tertentu
+func GetHub(groupID string) *Hub {
+	if h, ok := hubs[groupID]; ok {
+		return h
+	}
+
+	h := &Hub{
+		GroupID:    groupID,
+		Clients:    make(map[string]*Client),
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 	}
+
+	hubs[groupID] = h
+	go h.Run()
+	return h
 }
 
+// Jalankan loop untuk handle event register, unregister, broadcast
 func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
-			h.Clients[client] = true
-			log.Println("Client connected:", client.ID)
+			if existing, ok := h.Clients[client.UserID]; ok {
+				log.Println("User", client.UserID, "reconnected to group", h.GroupID)
+				existing.Conn.Close()
+			}
+			h.Clients[client.UserID] = client
+			log.Println("Client connected:", client.UserID, "to group", h.GroupID)
 
 		case client := <-h.Unregister:
-			if _, ok := h.Clients[client]; ok {
-				delete(h.Clients, client)
+			if _, ok := h.Clients[client.UserID]; ok {
+				delete(h.Clients, client.UserID)
 				close(client.Send)
-				log.Println("Client disconnected:", client.ID)
+				log.Println("Client disconnected:", client.UserID, "from group", h.GroupID)
 			}
 
 		case message := <-h.Broadcast:
-			for client := range h.Clients {
+			for _, client := range h.Clients {
 				select {
 				case client.Send <- message:
 				default:
 					close(client.Send)
-					delete(h.Clients, client)
+					delete(h.Clients, client.UserID)
 				}
 			}
-		}
-	}
-}
-
-func (c *Client) ReadPump() {
-	defer func() {
-		c.HubRef.Unregister <- c
-		c.Conn.Close()
-	}()
-
-	for {
-		_, msg, err := c.Conn.ReadMessage()
-		if err != nil {
-			log.Println("read error:", err)
-			break
-		}
-		c.HubRef.Broadcast <- msg
-	}
-}
-
-func (c *Client) WritePump() {
-	defer c.Conn.Close()
-
-	for msg := range c.Send {
-		c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-		if err := c.Conn.WriteMessage(websocket.TextMessage, msg); err != nil {
-			log.Println("write error:", err)
-			return
 		}
 	}
 }
