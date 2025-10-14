@@ -11,4 +11,5 @@ func InitRoutes(r *gin.Engine, db *gorm.DB) {
 	InitContactRoutes(r, db)
 	InitGroupRoutes(r, db)
 	InitGroupParticipantRoutes(r, db)
+	InitLocationRoutes(r, db)
 }

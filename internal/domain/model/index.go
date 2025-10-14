@@ -92,4 +92,5 @@ var Models = []any{
 	&Contact{},
 	&Group{},
 	&GroupParticipant{},
+	&Location{},
 }
