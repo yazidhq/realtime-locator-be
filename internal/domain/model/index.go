@@ -14,7 +14,7 @@ type (
 const (
 	Superadmin Role = "superadmin"
 	Admin      Role = "admin"
-	Customer   Role = "customer"
+	Member     Role = "member"
 
 	Pending  ContactStatus = "pending"
 	Accepted ContactStatus = "accepted"
@@ -23,7 +23,7 @@ const (
 
 func (r Role) IsValid() bool {
 	switch r {
-	case Superadmin, Admin, Customer:
+	case Superadmin, Admin, Member:
 		return true
 	}
 	return false

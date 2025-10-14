@@ -16,15 +16,15 @@ func InitContactRoutes(r *gin.Engine, db *gorm.DB) {
 	handler := _handler.NewContactHandler(uc)
 
 	contactRoutes := r.Group("/api/contact")
-	contactRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("admin", "customer"))
+	contactRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("admin", "member"))
 	
 	contactRoutes.GET("/", handler.FindAll)
 	contactRoutes.GET("/:id", handler.FindById)
 
 	contactRoutes.POST("/", handler.Create)
 	contactRoutes.PATCH("/:id", handler.Update)
+	contactRoutes.DELETE("/:id", handler.Delete)
 	
 	contactRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("superadmin"))
-	contactRoutes.DELETE("/:id", handler.Delete)
 	contactRoutes.DELETE("/truncate", handler.Truncate)
 }
