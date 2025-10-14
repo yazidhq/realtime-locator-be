@@ -90,4 +90,6 @@ func (r ContactStatus) Value() (driver.Value, error) {
 var Models = []any{
 	&User{},
 	&Contact{},
+	&Group{},
+	&GroupParticipant{},
 }
