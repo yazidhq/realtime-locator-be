@@ -12,6 +12,7 @@ import (
 
 type ContactUsecase struct {
 	repo repository.ContactRepository
+	repoUser repository.UserRepository
 }
 
 func NewContactUsecase(r *repository.ContactRepository) *ContactUsecase {
@@ -23,6 +24,14 @@ func (u *ContactUsecase) Create(req *dto.ContactCreateRequest) (*model.Contact, 
 		UserID: req.UserID,
 		ContactID: req.ContactID,
 		Status: req.Status,
+	}
+
+	if _, err := u.repoUser.FindById(contact.UserID); err != nil {
+		return nil, responses.NewBadRequestError("user id not found in user")
+	}
+	
+	if _, err := u.repoUser.FindById(contact.ContactID); err != nil {
+		return nil, responses.NewBadRequestError("contact id not found in user")
 	}
 
 	created, err := u.repo.Create(contact)
@@ -42,6 +51,18 @@ func (u *ContactUsecase) Update(contactID uuid.UUID, req *dto.ContactUpdateReque
 
 	if _, err := u.repo.FindById(contactID); err != nil {
 		return nil, responses.NewNotFoundError("contact not found")
+	}
+
+	if contact.UserID.String() != "" {
+		if _, err := u.repoUser.FindById(contact.UserID); err != nil {
+			return nil, responses.NewBadRequestError("user id not found in user")
+		}
+	}
+	
+	if contact.ContactID.String() != "" {
+		if _, err := u.repoUser.FindById(contact.ContactID); err != nil {
+			return nil, responses.NewBadRequestError("contact id not found in user")
+		}
 	}
 
 	updated, err := u.repo.Update(contactID, *contact)

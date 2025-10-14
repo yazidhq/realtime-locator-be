@@ -12,6 +12,8 @@ import (
 
 type GroupParticipantUsecase struct {
 	repo repository.GroupParticipantRepository
+	repoGroup repository.GroupRepository
+	repoUser repository.UserRepository
 }
 
 func NewGroupParticipantUsecase(r *repository.GroupParticipantRepository) *GroupParticipantUsecase {
@@ -22,6 +24,14 @@ func (u *GroupParticipantUsecase) Create(req *dto.GroupParticipantCreateRequest)
 	groupParticipant := &model.GroupParticipant{
 		GroupID: req.GroupID,
 		UserID: req.UserID,
+	}
+
+	if _, err := u.repoGroup.FindById(groupParticipant.GroupID); err != nil {
+		return nil, responses.NewBadRequestError("group id not found in group")
+	}
+
+	if _, err := u.repoUser.FindById(groupParticipant.UserID); err != nil {
+		return nil, responses.NewBadRequestError("user id not found in user")
 	}
 
 	created, err := u.repo.Create(groupParticipant)
@@ -40,6 +50,18 @@ func (u *GroupParticipantUsecase) Update(groupParticipantID uuid.UUID, req *dto.
 
 	if _, err := u.repo.FindById(groupParticipantID); err != nil {
 		return nil, responses.NewNotFoundError("groupParticipant not found")
+	}
+
+	if groupParticipant.GroupID.String() != "" {
+		if _, err := u.repoGroup.FindById(groupParticipant.GroupID); err != nil {
+			return nil, responses.NewBadRequestError("group id not found in group")
+		}
+	}
+
+	if groupParticipant.UserID.String() != "" {
+		if _, err := u.repoUser.FindById(groupParticipant.UserID); err != nil {
+			return nil, responses.NewBadRequestError("user id not found in user")
+		}
 	}
 
 	updated, err := u.repo.Update(groupParticipantID, *groupParticipant)

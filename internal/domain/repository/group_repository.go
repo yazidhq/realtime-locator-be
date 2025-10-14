@@ -3,6 +3,7 @@ package repository
 import (
 	"TeamTrackerBE/internal/domain/model"
 	"TeamTrackerBE/internal/utils"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -96,4 +97,19 @@ func (r *GroupRepository) Truncate() error {
 		Error
     
 	return err
+}
+
+func (r *GroupRepository) FindByOwnerID(ownerID uuid.UUID) (*model.Group, error) {
+	var group model.Group
+
+	err := r.db.
+		Where("owner_id = ?", ownerID).
+		First(&group).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		return nil, err
+	}
+
+	return &group, err
 }

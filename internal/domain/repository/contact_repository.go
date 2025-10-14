@@ -3,6 +3,7 @@ package repository
 import (
 	"TeamTrackerBE/internal/domain/model"
 	"TeamTrackerBE/internal/utils"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -96,4 +97,34 @@ func (r *ContactRepository) Truncate() error {
 		Error
     
 	return err
+}
+
+func (r *ContactRepository) FindByUserID(userID uuid.UUID) (*model.Contact, error) {
+	var contact model.Contact
+
+	err := r.db.
+		Where("user_id = ?", userID).
+		First(&contact).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		return nil, err
+	}
+
+	return &contact, err
+}
+
+func (r *ContactRepository) FindByContactID(contactID uuid.UUID) (*model.Contact, error) {
+	var contact model.Contact
+
+	err := r.db.
+		Where("contact_id = ?", contactID).
+		First(&contact).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		return nil, err
+	}
+
+	return &contact, err
 }

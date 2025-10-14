@@ -3,6 +3,7 @@ package repository
 import (
 	"TeamTrackerBE/internal/domain/model"
 	"TeamTrackerBE/internal/utils"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -96,4 +97,34 @@ func (r *GroupParticipantRepository) Truncate() error {
 		Error
     
 	return err
+}
+
+func (r *GroupParticipantRepository) FindByGroupID(groupID uuid.UUID) (*model.GroupParticipant, error) {
+	var groupParticipant model.GroupParticipant
+
+	err := r.db.
+		Where("group_id = ?", groupID).
+		First(&groupParticipant).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		return nil, err
+	}
+
+	return &groupParticipant, err
+}
+
+func (r *GroupParticipantRepository) FindByUserID(userID uuid.UUID) (*model.GroupParticipant, error) {
+	var groupParticipant model.GroupParticipant
+
+	err := r.db.
+		Where("user_id = ?", userID).
+		First(&groupParticipant).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		return nil, err
+	}
+
+	return &groupParticipant, err
 }

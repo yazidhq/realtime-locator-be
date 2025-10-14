@@ -12,6 +12,7 @@ import (
 
 type GroupUsecase struct {
 	repo repository.GroupRepository
+	repoUser repository.UserRepository
 }
 
 func NewGroupUsecase(r *repository.GroupRepository) *GroupUsecase {
@@ -22,6 +23,10 @@ func (u *GroupUsecase) Create(req *dto.GroupCreateRequest) (*model.Group, error)
 	group := &model.Group{
 		Name: req.Name,
 		OwnerID: req.OwnerID,
+	}
+
+	if _, err := u.repoUser.FindById(group.OwnerID); err != nil {
+		return nil, responses.NewBadRequestError("owner id not found in user")
 	}
 
 	created, err := u.repo.Create(group)
@@ -40,6 +45,12 @@ func (u *GroupUsecase) Update(groupID uuid.UUID, req *dto.GroupUpdateRequest) (*
 
 	if _, err := u.repo.FindById(groupID); err != nil {
 		return nil, responses.NewNotFoundError("group not found")
+	}
+
+	if group.OwnerID.String() != "" {
+		if _, err := u.repoUser.FindById(group.OwnerID); err != nil {
+			return nil, responses.NewBadRequestError("owner id not found in user")
+		}
 	}
 
 	updated, err := u.repo.Update(groupID, *group)
