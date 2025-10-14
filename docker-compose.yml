@@ -3,7 +3,7 @@ version: "3.9"
 services:
   app:
     build: .
-    container_name: team-tracket-be
+    container_name: team-tracker-be
     ports:
       - "3000:3000"
     depends_on:
@@ -14,7 +14,7 @@ services:
       - DB_HOST=db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=db_team-tracket
+      - DB_NAME=db_team_tracker
       - DB_PORT=5432
       - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9
       - JWT_EXPIRES_IN=24h
@@ -23,25 +23,25 @@ services:
 
   db:
     image: postgis/postgis:15-3.4
-    container_name: team-tracket-db
+    container_name: team-tracker-db
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: team-tracket
+      POSTGRES_DB: team-tracker
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db_team-tracket"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_team_tracker"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   adminer:
     image: adminer
-    container_name: team-tracket-adminer
+    container_name: team-tracker-adminer
     restart: always
     ports:
       - "8081:8080"
