@@ -15,8 +15,14 @@ type ContactUsecase struct {
 	repoUser repository.UserRepository
 }
 
-func NewContactUsecase(r *repository.ContactRepository) *ContactUsecase {
-	return &ContactUsecase{repo: *r}
+func NewContactUsecase(
+	r *repository.ContactRepository,
+	ru *repository.UserRepository,
+	) *ContactUsecase {
+	return &ContactUsecase{
+		repo: *r,
+		repoUser: *ru,
+	}
 }
 
 func (u *ContactUsecase) Create(req *dto.ContactCreateRequest) (*model.Contact, error) {

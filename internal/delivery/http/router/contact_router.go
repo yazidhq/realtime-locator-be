@@ -11,8 +11,10 @@ import (
 )
 
 func InitContactRoutes(r *gin.Engine, db *gorm.DB) {
+	repoUser := _repo.NewUserRepository(db)
+	
 	repo := _repo.NewContactRepository(db)
-	uc := _uc.NewContactUsecase(repo)
+	uc := _uc.NewContactUsecase(repo, repoUser)
 	handler := _handler.NewContactHandler(uc)
 
 	contactRoutes := r.Group("/api/contact")

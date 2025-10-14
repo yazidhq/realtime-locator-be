@@ -16,8 +16,16 @@ type GroupParticipantUsecase struct {
 	repoUser repository.UserRepository
 }
 
-func NewGroupParticipantUsecase(r *repository.GroupParticipantRepository) *GroupParticipantUsecase {
-	return &GroupParticipantUsecase{repo: *r}
+func NewGroupParticipantUsecase(
+	r *repository.GroupParticipantRepository,
+	rg *repository.GroupRepository,
+	ru *repository.UserRepository,
+	) *GroupParticipantUsecase {
+	return &GroupParticipantUsecase{
+		repo: *r,
+		repoGroup: *rg,
+		repoUser: *ru,
+	}
 }
 
 func (u *GroupParticipantUsecase) Create(req *dto.GroupParticipantCreateRequest) (*model.GroupParticipant, error) {

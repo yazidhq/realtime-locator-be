@@ -16,8 +16,16 @@ type LocationUsecase struct {
 	repoUser repository.UserRepository
 }
 
-func NewLocationUsecase(r *repository.LocationRepository) *LocationUsecase {
-	return &LocationUsecase{repo: *r}
+func NewLocationUsecase(
+	r *repository.LocationRepository,
+	rg *repository.GroupRepository,
+	ru *repository.UserRepository,
+	) *LocationUsecase {
+	return &LocationUsecase{
+		repo: *r,
+		repoGroup: *rg,
+		repoUser: *ru,
+	}
 }
 
 func (u *LocationUsecase) Create(req *dto.LocationCreateRequest) (*model.Location, error) {

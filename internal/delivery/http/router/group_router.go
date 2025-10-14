@@ -11,8 +11,10 @@ import (
 )
 
 func InitGroupRoutes(r *gin.Engine, db *gorm.DB) {
+	repoUser := _repo.NewUserRepository(db)
+
 	repo := _repo.NewGroupRepository(db)
-	uc := _uc.NewGroupUsecase(repo)
+	uc := _uc.NewGroupUsecase(repo, repoUser)
 	handler := _handler.NewGroupHandler(uc)
 
 	groupRoutes := r.Group("/api/group")
