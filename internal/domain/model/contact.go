@@ -9,7 +9,7 @@ type Contact struct {
     ID          uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
     UserID      uuid.UUID       `gorm:"not null" json:"user_id"`
     ContactID   uuid.UUID       `gorm:"not null" json:"contact_id"`
-    Status      ContactStatus   `gorm:"not null;default:'pending'" json:"name"`
+    Status      ContactStatus   `gorm:"not null;default:'pending'" json:"status"`
     gorm.Model                  `json:"-"`
 }
 
