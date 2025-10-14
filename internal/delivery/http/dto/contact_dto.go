@@ -9,7 +9,7 @@ import (
 type ContactCreateRequest struct {
 	UserID 	  uuid.UUID 			`json:"user_id" binding:"required"`
 	ContactID uuid.UUID 			`json:"contact_id" binding:"required"`
-	Status    model.ContactStatus   `json:"status" binding:"required"`
+	Status    model.ContactStatus   `json:"status"`
 }
 
 type ContactUpdateRequest struct {
