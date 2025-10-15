@@ -19,7 +19,7 @@ func InitLocationRoutes(r *gin.Engine, db *gorm.DB) {
 	handler := _handler.NewLocationHandler(uc)
 
 	locationRoutes := r.Group("/api/location")
-	locationRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("admin", "member"))
+	locationRoutes.Use(middleware.AuthMiddleware())
 	
 	locationRoutes.GET("/", handler.FindAll)
 	locationRoutes.GET("/:id", handler.FindById)
@@ -28,6 +28,6 @@ func InitLocationRoutes(r *gin.Engine, db *gorm.DB) {
 	locationRoutes.PATCH("/:id", handler.Update)
 	locationRoutes.DELETE("/:id", handler.Delete)
 	
-	locationRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("superadmin"))
+	locationRoutes.Use(middleware.RestrictTo("superadmin"))
 	locationRoutes.DELETE("/truncate", handler.Truncate)
 }

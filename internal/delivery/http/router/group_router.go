@@ -18,7 +18,7 @@ func InitGroupRoutes(r *gin.Engine, db *gorm.DB) {
 	handler := _handler.NewGroupHandler(uc)
 
 	groupRoutes := r.Group("/api/group")
-	groupRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("admin", "member"))
+	groupRoutes.Use(middleware.AuthMiddleware())
 	
 	groupRoutes.GET("/", handler.FindAll)
 	groupRoutes.GET("/:id", handler.FindById)
@@ -27,6 +27,6 @@ func InitGroupRoutes(r *gin.Engine, db *gorm.DB) {
 	groupRoutes.PATCH("/:id", handler.Update)
 	groupRoutes.DELETE("/:id", handler.Delete)
 
-	groupRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("superadmin"))
+	groupRoutes.Use(middleware.RestrictTo("superadmin"))
 	groupRoutes.DELETE("/truncate", handler.Truncate)
 }

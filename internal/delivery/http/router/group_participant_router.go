@@ -19,7 +19,7 @@ func InitGroupParticipantRoutes(r *gin.Engine, db *gorm.DB) {
 	handler := _handler.NewGroupParticipantHandler(uc)
 
 	groupParticipantRoutes := r.Group("/api/group_participant")
-	groupParticipantRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("admin", "member"))
+	groupParticipantRoutes.Use(middleware.AuthMiddleware())
 	
 	groupParticipantRoutes.GET("/", handler.FindAll)
 	groupParticipantRoutes.GET("/:id", handler.FindById)
@@ -28,6 +28,6 @@ func InitGroupParticipantRoutes(r *gin.Engine, db *gorm.DB) {
 	groupParticipantRoutes.PATCH("/:id", handler.Update)
 	groupParticipantRoutes.DELETE("/:id", handler.Delete)
 	
-	groupParticipantRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("superadmin"))
+	groupParticipantRoutes.Use(middleware.RestrictTo("superadmin"))
 	groupParticipantRoutes.DELETE("/truncate", handler.Truncate)
 }
