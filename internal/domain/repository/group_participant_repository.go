@@ -128,3 +128,19 @@ func (r *GroupParticipantRepository) FindByUserID(userID uuid.UUID) (*model.Grou
 
 	return &groupParticipant, err
 }
+
+func (r *GroupParticipantRepository) FindByGroupIDUserID(groupID uuid.UUID, userID uuid.UUID) (*model.GroupParticipant, error) {
+	var groupParticipant model.GroupParticipant
+
+	err := r.db.
+		Where("group_id = ?", groupID).
+		Where("user_id = ?", userID).
+		First(&groupParticipant).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		return nil, err
+	}
+
+	return &groupParticipant, err
+}
