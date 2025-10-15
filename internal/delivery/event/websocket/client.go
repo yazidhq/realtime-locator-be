@@ -1,9 +1,8 @@
 package websocket
 
 import (
-	"TeamTrackerBE/internal/utils/responses"
 	"encoding/json"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -28,14 +27,14 @@ func (c *Client) ReadPump() {
 	for {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
-			responses.NewInternalServerError(fmt.Sprintf("read error: %s", err))
+			log.Println("read error: ", err)
 			break
 		}
 
 		// Validasi JSON (optional)
 		var loc LocationMessage
 		if err := json.Unmarshal(msg, &loc); err != nil {
-			responses.NewInternalServerError(fmt.Sprintf("invalid message: %s", err))
+			log.Println("invalid message: ", err)
 			continue
 		}
 
@@ -51,7 +50,7 @@ func (c *Client) WritePump() {
 	for msg := range c.Send {
 		c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 		if err := c.Conn.WriteMessage(websocket.TextMessage, msg); err != nil {
-			responses.NewInternalServerError(fmt.Sprintf("write error: %s", err))
+			log.Println("write error: ", err)
 			return
 		}
 	}
