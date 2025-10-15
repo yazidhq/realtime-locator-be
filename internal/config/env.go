@@ -23,8 +23,9 @@ type Database struct {
 }
 
 type JWT struct {
-	SecretKey string `json:"secret_key"`
-	ExpiresIn string `json:"expires_in"`
+	SecretKey 			  string `json:"secret_key"`
+	ExpiresIn 			  string `json:"expires_in"`
+	RefreshTokenExpiresIn string `json:"refresh_token_expires_in"`
 }
 
 var Env *EnvConfig
@@ -45,6 +46,7 @@ func LoadEnv() *EnvConfig {
 		JWT: JWT{
 			SecretKey: getEnv("JWT_SECRET_KEY", "supersecret"),
 			ExpiresIn: getEnv("JWT_EXPIRES_IN", "24h"),
+			RefreshTokenExpiresIn: getEnv("JWT_REFRESH_TOKEN_EXPIRES_IN", "7d"),
 		},
 	}
 

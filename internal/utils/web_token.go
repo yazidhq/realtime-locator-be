@@ -20,10 +20,70 @@ func GenerateJWT(userID uuid.UUID, role model.Role) (string, error) {
 	claims := jwt.MapClaims{
 		"userID": userID,
 		"role": role,
-		"exp":     time.Now().Add(duration).Unix(),
-		"iat":     time.Now().Unix(),
+		"exp": time.Now().Add(duration).Unix(),
+		"iat": time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(config.Env.JWT.SecretKey))
+}
+
+func GenerateRefreshToken(userID uuid.UUID, role model.Role) (string, error) {
+	expStr := config.Env.JWT.RefreshTokenExpiresIn
+	duration, err := time.ParseDuration(expStr)
+	if err != nil {
+		return "", fmt.Errorf("invalid JWT_REFRESH_TOKEN_EXPIRES_IN format: %v", err)
+	}
+    
+    claims := jwt.MapClaims{
+        "userID": userID.String(),
+		"role": role,
+        "exp": time.Now().Add(duration).Unix(),
+        "iat": time.Now().Unix(),
+        "type": "refresh",
+    }
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    return token.SignedString([]byte(config.Env.JWT.SecretKey))
+}
+
+func ValidateRefreshToken(tokenString string) (uuid.UUID, error) {
+    token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
+        if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, fmt.Errorf("unexpected signing method")
+        }
+        return []byte(config.Env.JWT.SecretKey), nil
+    })
+
+    if err != nil || !token.Valid {
+        return uuid.Nil, fmt.Errorf("invalid or expired refresh token")
+    }
+
+    claims, ok := token.Claims.(jwt.MapClaims)
+    if !ok {
+        return uuid.Nil, fmt.Errorf("invalid token claims")
+    }
+
+    tokenType, ok := claims["type"].(string)
+    if !ok || tokenType != "refresh" {
+        return uuid.Nil, fmt.Errorf("invalid token type")
+    }
+
+    if exp, ok := claims["exp"].(float64); ok {
+        if time.Unix(int64(exp), 0).Before(time.Now()) {
+            return uuid.Nil, fmt.Errorf("refresh token expired")
+        }
+    }
+
+    userIDStr, ok := claims["userID"].(string)
+    if !ok {
+        return uuid.Nil, fmt.Errorf("invalid userID in token")
+    }
+
+    userID, err := uuid.Parse(userIDStr)
+    if err != nil {
+        return uuid.Nil, fmt.Errorf("invalid UUID format")
+    }
+
+    return userID, nil
 }

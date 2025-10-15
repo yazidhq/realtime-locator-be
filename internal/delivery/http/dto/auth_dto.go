@@ -20,12 +20,28 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type RefreshTokenRequest struct {
+    RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
 type RegisterResponse struct {
-	ID       	uuid.UUID  `json:"id"`
-	Role     	model.Role `json:"role"`
-	Name     	string     `json:"name"`
-	Username 	string     `json:"username"`
-	Email    	string     `json:"email"`
-	PhoneNumber	string     `json:"phone_number"`
-	Token    	string     `json:"token"`
+	ID       	 uuid.UUID  `json:"id"`
+	Role     	 model.Role `json:"role"`
+	Name     	 string     `json:"name"`
+	Username 	 string     `json:"username"`
+	Email    	 string     `json:"email"`
+	PhoneNumber	 string     `json:"phone_number"`
+	Token    	 string     `json:"token"`
+	RefreshToken string     `json:"refresh_token"`
+}
+
+type LoginResponse struct {
+    ID       	 uuid.UUID  `json:"id"`
+    Token        string     `json:"token"`
+    RefreshToken string     `json:"refresh_token"`
+}
+
+type RefreshTokenResponse struct {
+    Token        string `json:"token"`
+    RefreshToken string `json:"refresh_token"`
 }

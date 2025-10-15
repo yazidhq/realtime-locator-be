@@ -17,4 +17,5 @@ func InitAuthRoutes(r *gin.Engine, db *gorm.DB) {
 	authRoutes := r.Group("/api/auth")
 	authRoutes.POST("/register", handler.Register)
 	authRoutes.POST("/login", handler.Login)
+	authRoutes.POST("/refresh_token", handler.RefreshToken)
 }
