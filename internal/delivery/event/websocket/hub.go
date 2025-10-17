@@ -1,6 +1,8 @@
 package websocket
 
 import (
+	"TeamTrackerBE/internal/domain/model"
+	"encoding/json"
 	"log"
 )
 
@@ -17,7 +19,7 @@ type Hub struct {
 var hubs = make(map[string]*Hub)
 
 // GetHub mengambil atau membuat hub baru untuk group tertentu
-func GetHub(groupID string) *Hub {
+func GetHub(groupID string, group *model.Group) *Hub {
 	if h, ok := hubs[groupID]; ok {
 		return h
 	}
@@ -31,12 +33,13 @@ func GetHub(groupID string) *Hub {
 	}
 
 	hubs[groupID] = h
-	go h.Run()
+	go h.Run(group)
+	// fmt.Println("Message", h.Broadcast)
 	return h
 }
 
 // Jalankan loop untuk handle event register, unregister, broadcast
-func (h *Hub) Run() {
+func (h *Hub) Run(group *model.Group) {
 	for {
 		select {
 		case client := <-h.Register:
@@ -55,12 +58,47 @@ func (h *Hub) Run() {
 			}
 
 		case message := <-h.Broadcast:
+			var locMsg LocationMessage
+			if err := json.Unmarshal(message, &locMsg); err != nil {
+				log.Println("Invalid message:", err)
+				continue
+			}
+
+			if len(group.RadiusArea) == 0 {
+				log.Printf("Group %s belum memiliki radius area", group.ID)
+				continue
+			}
+
+			var area RadiusArea
+			if err := json.Unmarshal(group.RadiusArea, &area); err != nil {
+				log.Printf("Gagal parse radius area: %v", err)
+				continue
+			}
+
+			jarak := Distance(locMsg.Latitude, locMsg.Longitude, area.CenterLat, area.CenterLon)
+
+			warn := CrossedRadiusMessage{
+				Type: "warning",
+				Message: "the user has crossed the radius boundary",
+			}
+
+			warnMsg, _ := json.Marshal(warn)
+
 			for _, client := range h.Clients {
-				select {
-				case client.Send <- message:
-				default:
-					close(client.Send)
-					delete(h.Clients, client.UserID)
+				if jarak > area.Radius {
+					select {
+					case client.Send <- warnMsg:
+					default:
+						close(client.Send)
+						delete(h.Clients, client.UserID)
+					}
+				} else {
+					select {
+					case client.Send <- message:
+					default:
+						close(client.Send)
+						delete(h.Clients, client.UserID)
+					}
 				}
 			}
 		}

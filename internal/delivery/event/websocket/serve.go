@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"TeamTrackerBE/internal/domain/model"
 	"log"
 	"net/http"
 
@@ -12,14 +13,14 @@ var upgrader = websocket.Upgrader{
 }
 
 // ServeWs meng-handle koneksi baru ke WebSocket
-func ServeWs(w http.ResponseWriter, r *http.Request, groupID, userID string) {
+func ServeWs(w http.ResponseWriter, r *http.Request, groupID, userID string, group *model.Group) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrader websocket error: ", err)
 		return
 	}
 
-	hub := GetHub(groupID)
+	hub := GetHub(groupID, group)
 
 	client := &Client{
 		ID:     r.RemoteAddr,

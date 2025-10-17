@@ -1,8 +1,0 @@
-package websocket
-
-type LocationMessage struct {
-	UserID    string  `json:"user_id"`
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
-	Timestamp string  `json:"timestamp"`
-}

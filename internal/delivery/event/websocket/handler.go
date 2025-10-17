@@ -43,8 +43,14 @@ func (u *LiveTrackHandler) LiveTrack(c *gin.Context) {
 		return
 	}
 
-	if _, err := u.repoGroup.FindById(groupIDParse); err != nil {
+	group, err := u.repoGroup.FindById(groupIDParse);
+	if err != nil {
 		responses.Error(c, http.StatusBadRequest, "group id not found in group")
+		return
+	}
+
+	if group.RadiusArea == nil {
+		responses.Error(c, http.StatusBadRequest, "group have not radius yet")
 		return
 	}
 	
@@ -65,7 +71,7 @@ func (u *LiveTrackHandler) LiveTrack(c *gin.Context) {
 	}
 
 	if websocket.IsWebSocketUpgrade(c.Request) {
-		ServeWs(c.Writer, c.Request, groupID, userID)
+		ServeWs(c.Writer, c.Request, groupID, userID, group)
 		return
 	}
 
