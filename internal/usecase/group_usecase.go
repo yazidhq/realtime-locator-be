@@ -29,6 +29,7 @@ func (u *GroupUsecase) Create(req *dto.GroupCreateRequest) (*model.Group, error)
 	group := &model.Group{
 		Name: req.Name,
 		OwnerID: req.OwnerID,
+		RadiusArea: req.RadiusArea,
 	}
 
 	if _, err := u.repoUser.FindById(group.OwnerID); err != nil {
@@ -47,6 +48,7 @@ func (u *GroupUsecase) Update(groupID uuid.UUID, req *dto.GroupUpdateRequest) (*
 	group := &model.Group{
 		Name: req.Name,
 		OwnerID: req.OwnerID,
+		RadiusArea: req.RadiusArea,
 	}
 
 	if _, err := u.repo.FindById(groupID); err != nil {

@@ -124,6 +124,7 @@ func (h GroupHandler) FindAll(c *gin.Context) {
             ID: u.ID.String(),
             Name: u.Name,
             OwnerID: u.OwnerID,
+            RadiusArea: u.RadiusArea,
         })
     }
 
@@ -152,6 +153,7 @@ func (h GroupHandler) FindById(c *gin.Context) {
         ID: result.ID.String(),
 		Name: result.Name,
         OwnerID: result.OwnerID,
+        RadiusArea: result.RadiusArea,
     }
 
 	responses.Success(c, "Get data successfully", response)
