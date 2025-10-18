@@ -79,6 +79,7 @@ func (h *Hub) Run(group *model.Group) {
 
 			warn := CrossedRadiusMessage{
 				Type: "warning",
+				UserID: locMsg.UserID,
 				Message: "the user has crossed the radius boundary",
 			}
 
