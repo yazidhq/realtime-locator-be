@@ -19,3 +19,7 @@ type GroupParticipantResponse struct {
 	GroupID uuid.UUID `json:"group_id"`
 	UserID  uuid.UUID `json:"user_id"`
 }
+
+type JoinInviteLink struct {
+	InviteToken string `json:"invite_token" binding:"required"`
+}

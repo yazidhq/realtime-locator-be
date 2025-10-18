@@ -19,6 +19,7 @@ type GroupParticipantInterface interface {
 	FindAll(page, limit int, filters []utils.FilterOptions) ([]model.GroupParticipant, int, error)
 	FindById(groupParticipantID uuid.UUID) (*model.GroupParticipant, error)
 	Truncate() (error)
+	JoinByInvite(inviteToken string, userID uuid.UUID) (*model.GroupParticipant, error)
 }
 
 type GroupParticipantHandler struct {
@@ -169,4 +170,40 @@ func (h *GroupParticipantHandler) Truncate(c *gin.Context) {
 	}
 
 	responses.Success(c, "Truncated successfully", nil)
+}
+
+func (h GroupParticipantHandler) Join(c *gin.Context) {
+	var req dto.JoinInviteLink
+	if err := c.ShouldBindJSON(&req); err != nil {
+		token := c.Query("invite_token")
+		if token == "" {
+			responses.Error(c, http.StatusBadRequest, "invite token is required")
+			return
+		}
+		req.InviteToken = token
+	}
+
+	userIDVal, exists := c.Get("userID")
+	if !exists {
+		responses.Error(c, http.StatusUnauthorized, "unauthenticated")
+		return
+	}
+
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		responses.Error(c, http.StatusUnauthorized, "invalid user id in context")
+		return
+	}
+
+	created, err := h.uc.JoinByInvite(req.InviteToken, userID)
+	if err != nil {
+		if ce, ok := err.(responses.CodedError); ok {
+			responses.Error(c, ce.StatusCode(), ce.Error())
+		} else {
+			responses.Error(c, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	responses.Created(c, "Joined group successfully", created)
 }

@@ -117,3 +117,34 @@ func (u *GroupParticipantUsecase) Truncate() error {
 	}
 	return nil
 }
+
+func (u *GroupParticipantUsecase) JoinByInvite(inviteToken string, userID uuid.UUID) (*model.GroupParticipant, error) {
+	groupID, err := utils.ValidateGroupInviteToken(inviteToken)
+	if err != nil {
+		return nil, responses.NewBadRequestError("invalid invite token")
+	}
+
+	if _, err := u.repoGroup.FindById(groupID); err != nil {
+		return nil, responses.NewBadRequestError("group not found")
+	}
+
+	if _, err := u.repoUser.FindById(userID); err != nil {
+		return nil, responses.NewBadRequestError("user not found")
+	}
+
+	if _, err := u.repo.FindByGroupIDUserID(groupID, userID); err == nil {
+		return nil, responses.NewBadRequestError("user already a participant")
+	}
+
+	gp := &model.GroupParticipant{
+		GroupID: groupID,
+		UserID:  userID,
+	}
+
+	created, err := u.repo.Create(gp)
+	if err != nil {
+		return nil, err
+	}
+
+	return created, nil
+}

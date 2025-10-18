@@ -26,6 +26,7 @@ func InitGroupRoutes(r *gin.Engine, db *gorm.DB) {
 	groupRoutes.POST("/", handler.Create)
 	groupRoutes.PATCH("/:id", handler.Update)
 	groupRoutes.DELETE("/:id", handler.Delete)
+	groupRoutes.POST("/:id/invite", handler.Invite)
 
 	groupRoutes.Use(middleware.RestrictTo("superadmin"))
 	groupRoutes.DELETE("/truncate", handler.Truncate)

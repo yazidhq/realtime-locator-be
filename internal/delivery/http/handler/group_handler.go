@@ -172,3 +172,49 @@ func (h *GroupHandler) Truncate(c *gin.Context) {
 
 	responses.Success(c, "Truncated successfully", nil)
 }
+
+func (h GroupHandler) Invite(c *gin.Context) {
+	id := c.Param("id")
+	groupID, err := uuid.Parse(id)
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
+
+	userIDVal, exists := c.Get("userID")
+	if !exists {
+		responses.Error(c, http.StatusUnauthorized, "unauthenticated")
+		return
+	}
+
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		responses.Error(c, http.StatusUnauthorized, "invalid user id in context")
+		return
+	}
+
+	group, err := h.uc.FindById(groupID)
+	if err != nil {
+		if ce, ok := err.(responses.CodedError); ok {
+			responses.Error(c, ce.StatusCode(), ce.Error())
+		} else {
+			responses.Error(c, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	if group.OwnerID != userID {
+		responses.Error(c, http.StatusForbidden, "only group owner can create invite link")
+		return
+	}
+
+	token, err := utils.GenerateGroupInviteToken(groupID)
+	if err != nil {
+		responses.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	inviteToken := token
+
+	responses.Success(c, "Invite token generated", gin.H{"invite_token": inviteToken})
+}
