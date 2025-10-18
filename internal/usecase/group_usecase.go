@@ -6,6 +6,7 @@ import (
 	"TeamTrackerBE/internal/domain/repository"
 	"TeamTrackerBE/internal/utils"
 	"TeamTrackerBE/internal/utils/responses"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
@@ -30,6 +31,21 @@ func (u *GroupUsecase) Create(req *dto.GroupCreateRequest) (*model.Group, error)
 		Name: req.Name,
 		OwnerID: req.OwnerID,
 		RadiusArea: req.RadiusArea,
+	}
+
+	if len(group.RadiusArea) > 0 {
+		var area dto.RadiusArea
+		if err := json.Unmarshal(group.RadiusArea, &area); err != nil {
+			return nil, responses.NewBadRequestError("radius area harus berupa JSON dengan format yang benar")
+		}
+
+		if area.Radius <= 0 {
+			return nil, responses.NewBadRequestError("radius harus lebih besar dari 0")
+		}
+
+		if area.CenterLat == 0 || area.CenterLon == 0 {
+			return nil, responses.NewBadRequestError("area harus memiliki center lat dan center lon yang valid")
+		}
 	}
 
 	if _, err := u.repoUser.FindById(group.OwnerID); err != nil {

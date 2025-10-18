@@ -24,3 +24,9 @@ type GroupResponse struct {
 	OwnerID    uuid.UUID 	   `json:"owner_id"`
 	RadiusArea json.RawMessage `json:"radius_area"`
 }
+
+type RadiusArea struct {
+	Radius    float64 `json:"radius" binding:"required"`
+	CenterLat float64 `json:"center_lat" binding:"required"`
+	CenterLon float64 `json:"center_lon" binding:"required"`
+}
