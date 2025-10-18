@@ -7,12 +7,6 @@ type LocationMessage struct {
 	Longitude float64 `json:"longitude"`
 }
 
-type ChatMessage struct {
-	Type    string `json:"type"`
-	UserID  string `json:"user_id"`
-	Message string `json:"message"`
-}
-
 type CrossedRadiusMessage struct {
 	Type    string `json:"type"`
 	UserID  string `json:"user_id"`
