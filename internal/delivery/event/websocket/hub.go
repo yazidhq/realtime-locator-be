@@ -75,7 +75,7 @@ func (h *Hub) Run(group *model.Group) {
 				continue
 			}
 
-			jarak := Distance(locMsg.Latitude, locMsg.Longitude, area.CenterLat, area.CenterLon)
+			distance := Distance(locMsg.Latitude, locMsg.Longitude, area.CenterLat, area.CenterLon)
 
 			warn := CrossedRadiusMessage{
 				Type: "warning",
@@ -86,7 +86,7 @@ func (h *Hub) Run(group *model.Group) {
 			warnMsg, _ := json.Marshal(warn)
 
 			for _, client := range h.Clients {
-				if jarak > area.Radius {
+				if distance > area.Radius {
 					select {
 					case client.Send <- warnMsg:
 					default:
