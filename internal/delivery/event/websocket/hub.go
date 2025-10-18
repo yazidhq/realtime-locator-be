@@ -65,13 +65,13 @@ func (h *Hub) Run(group *model.Group) {
 			}
 
 			if len(group.RadiusArea) == 0 {
-				log.Printf("Group %s belum memiliki radius area", group.ID)
+				log.Printf("group have not radius yet: %s", group.ID)
 				continue
 			}
 
 			var area RadiusArea
 			if err := json.Unmarshal(group.RadiusArea, &area); err != nil {
-				log.Printf("Gagal parse radius area: %v", err)
+				log.Printf("failed to parse radius area: %v", err)
 				continue
 			}
 
