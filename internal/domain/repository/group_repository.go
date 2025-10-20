@@ -49,6 +49,7 @@ func (r *GroupRepository) Delete(groupID uuid.UUID) (*model.Group, error) {
 
 	err := r.db.
 		Where("id = ?", groupID).
+		Unscoped().
 		Delete(&group).
 		Error
 

@@ -40,7 +40,7 @@ func (u *ContactUsecase) Create(req *dto.ContactCreateRequest) (*model.Contact, 
 		return nil, responses.NewBadRequestError("contact id not found in user")
 	}
 	
-	if _, err := u.repo.FindByUserIDContactID(contact.UserID, contact.ContactID); err == nil {
+	if _, err := u.repo.FindByUserIDContactID(contact.UserID, contact.ContactID); err != nil {
 		return nil, responses.NewBadRequestError("user and contact has connected")
 	}
 
@@ -63,13 +63,13 @@ func (u *ContactUsecase) Update(contactID uuid.UUID, req *dto.ContactUpdateReque
 		return nil, responses.NewNotFoundError("contact not found")
 	}
 
-	if contact.UserID.String() != "" {
+	if contact.UserID != uuid.Nil {
 		if _, err := u.repoUser.FindById(contact.UserID); err != nil {
 			return nil, responses.NewBadRequestError("user id not found in user")
 		}
 	}
 	
-	if contact.ContactID.String() != "" {
+	if contact.ContactID != uuid.Nil {
 		if _, err := u.repoUser.FindById(contact.ContactID); err != nil {
 			return nil, responses.NewBadRequestError("contact id not found in user")
 		}

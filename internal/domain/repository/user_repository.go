@@ -49,6 +49,7 @@ func (r *UserRepository) Delete(userID uuid.UUID) (*model.User, error) {
 
 	err := r.db.
 		Where("id = ?", userID).
+		Unscoped().
 		Delete(&user).
 		Error
 

@@ -49,6 +49,7 @@ func (r *LocationRepository) Delete(locationID uuid.UUID) (*model.Location, erro
 
 	err := r.db.
 		Where("id = ?", locationID).
+		Unscoped().
 		Delete(&location).
 		Error
 

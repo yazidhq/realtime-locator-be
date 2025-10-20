@@ -49,6 +49,7 @@ func (r *ContactRepository) Delete(contactID uuid.UUID) (*model.Contact, error) 
 
 	err := r.db.
 		Where("id = ?", contactID).
+		Unscoped().
 		Delete(&contact).
 		Error
 

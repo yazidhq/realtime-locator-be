@@ -49,6 +49,7 @@ func (r *GroupParticipantRepository) Delete(groupParticipantID uuid.UUID) (*mode
 
 	err := r.db.
 		Where("id = ?", groupParticipantID).
+		Unscoped().
 		Delete(&groupParticipant).
 		Error
 
