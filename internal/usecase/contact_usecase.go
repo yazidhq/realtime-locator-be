@@ -40,7 +40,7 @@ func (u *ContactUsecase) Create(req *dto.ContactCreateRequest) (*model.Contact, 
 		return nil, responses.NewBadRequestError("contact id not found in user")
 	}
 	
-	if _, err := u.repo.FindByUserIDContactID(contact.UserID, contact.ContactID); err != nil {
+	if _, err := u.repo.FindByUserIDContactID(contact.UserID, contact.ContactID); err == nil {
 		return nil, responses.NewBadRequestError("user and contact has connected")
 	}
 
