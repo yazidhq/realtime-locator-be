@@ -76,6 +76,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
     response := dto.LoginResponse{
         ID: user.ID,
+        Name: user.Name,
+        Email: user.Email,
+        PhoneNumber: user.PhoneNumber,
         Token: token,
         RefreshToken: refreshToken,
     }

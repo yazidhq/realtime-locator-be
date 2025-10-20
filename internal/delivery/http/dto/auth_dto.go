@@ -37,6 +37,9 @@ type RegisterResponse struct {
 
 type LoginResponse struct {
     ID       	 uuid.UUID  `json:"id"`
+    Name       	 string	    `json:"name"`
+    Email        string	    `json:"email"`
+    PhoneNumber	 string	    `json:"phone_number"`
     Token        string     `json:"token"`
     RefreshToken string     `json:"refresh_token"`
 }
