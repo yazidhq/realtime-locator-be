@@ -128,3 +128,19 @@ func (r *ContactRepository) FindByContactID(contactID uuid.UUID) (*model.Contact
 
 	return &contact, err
 }
+
+func (r *ContactRepository) FindByUserIDContactID(userID uuid.UUID, contactID uuid.UUID) (*model.Contact, error) {
+	var contact model.Contact
+
+	err := r.db.
+		Where("user_id = ?", userID).
+		Where("contact_id = ?", contactID).
+		First(&contact).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		return nil, err
+	}
+
+	return &contact, err
+}
