@@ -18,7 +18,6 @@ const (
 
 	Pending  ContactStatus = "pending"
 	Accepted ContactStatus = "accepted"
-	Declined ContactStatus = "declined"
 )
 
 func (r Role) IsValid() bool {
@@ -31,7 +30,7 @@ func (r Role) IsValid() bool {
 
 func (r ContactStatus) IsValid() bool {
 	switch r {
-	case Pending, Accepted, Declined:
+	case Pending, Accepted:
 		return true
 	}
 	return false
