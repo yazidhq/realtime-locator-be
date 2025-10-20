@@ -16,10 +16,12 @@ func InitUserRoutes(r *gin.Engine, db *gorm.DB) {
 	handler := _handler.NewUserHandler(uc)
 
 	userRoutes := r.Group("/api/user")
-	userRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("superadmin"))
+	userRoutes.Use(middleware.AuthMiddleware())
 	
 	userRoutes.GET("/", handler.FindAll)
 	userRoutes.GET("/:id", handler.FindById)
+
+	userRoutes.Use(middleware.AuthMiddleware(), middleware.RestrictTo("superadmin"))
 
 	userRoutes.POST("/", handler.Create)
 	userRoutes.PATCH("/:id", handler.Update)
