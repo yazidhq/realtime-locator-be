@@ -5,19 +5,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
-// Client mewakili satu koneksi websocket
 type Client struct {
 	ID     string
-	UserID string
+	UserID uuid.UUID
 	Conn   *websocket.Conn
 	Send   chan []byte
 	HubRef *Hub
 }
 
-// ReadPump menerima pesan dari user
 func (c *Client) ReadPump() {
 	defer func() {
 		c.HubRef.Unregister <- c
@@ -31,19 +30,16 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		// Validasi JSON (optional)
 		var loc LocationMessage
 		if err := json.Unmarshal(msg, &loc); err != nil {
 			log.Println("invalid message: ", err)
 			continue
 		}
 
-		// Broadcast ke semua user di grup yang sama
 		c.HubRef.Broadcast <- msg
 	}
 }
 
-// WritePump mengirim pesan ke user
 func (c *Client) WritePump() {
 	defer c.Conn.Close()
 

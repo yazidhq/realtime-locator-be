@@ -1,10 +1,10 @@
 package websocket
 
 import (
-	"TeamTrackerBE/internal/domain/model"
 	"log"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -12,16 +12,14 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-// ServeWs meng-handle koneksi baru ke WebSocket
-func ServeWs(w http.ResponseWriter, r *http.Request, groupID, userID string, group *model.Group) {
+func ServeWs(w http.ResponseWriter, r *http.Request, userID uuid.UUID) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrader websocket error: ", err)
 		return
 	}
 
-	hub := GetHub(groupID, group)
-
+	hub := GetHub()
 	client := &Client{
 		ID:     r.RemoteAddr,
 		UserID: userID,
