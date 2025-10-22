@@ -12,32 +12,24 @@ import (
 
 type LocationUsecase struct {
 	repo repository.LocationRepository
-	repoGroup repository.GroupRepository
 	repoUser repository.UserRepository
 }
 
 func NewLocationUsecase(
 	r *repository.LocationRepository,
-	rg *repository.GroupRepository,
 	ru *repository.UserRepository,
 	) *LocationUsecase {
 	return &LocationUsecase{
 		repo: *r,
-		repoGroup: *rg,
 		repoUser: *ru,
 	}
 }
 
 func (u *LocationUsecase) Create(req *dto.LocationCreateRequest) (*model.Location, error) {
 	location := &model.Location{
-		GroupID: req.GroupID,
 		UserID: req.UserID,
 		Latitude: req.Latitude,
 		Longitude: req.Longitude,
-	}
-
-	if _, err := u.repoGroup.FindById(location.GroupID); err != nil {
-		return nil, responses.NewBadRequestError("group id not found in group")
 	}
 
 	if _, err := u.repoUser.FindById(location.UserID); err != nil {
@@ -54,7 +46,6 @@ func (u *LocationUsecase) Create(req *dto.LocationCreateRequest) (*model.Locatio
 
 func (u *LocationUsecase) Update(locationID uuid.UUID, req *dto.LocationUpdateRequest) (*model.Location, error) {
 	location := &model.Location{
-		GroupID: req.GroupID,
 		UserID: req.UserID,
 		Latitude: req.Latitude,
 		Longitude: req.Longitude,
@@ -62,12 +53,6 @@ func (u *LocationUsecase) Update(locationID uuid.UUID, req *dto.LocationUpdateRe
 
 	if _, err := u.repo.FindById(locationID); err != nil {
 		return nil, responses.NewNotFoundError("location not found")
-	}
-
-	if location.GroupID.String() != "" {
-		if _, err := u.repoGroup.FindById(location.GroupID); err != nil {
-			return nil, responses.NewBadRequestError("group id not found in group")
-		}
 	}
 
 	if location.UserID.String() != "" {

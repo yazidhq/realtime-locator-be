@@ -122,7 +122,6 @@ func (h LocationHandler) FindAll(c *gin.Context) {
     for _, u := range locations {
         response = append(response, dto.LocationResponse{
             ID: u.ID.String(),
-            GroupID: u.GroupID,
             UserID: u.UserID,
             Latitude: u.Latitude,
             Longitude: u.Longitude,
@@ -152,7 +151,6 @@ func (h LocationHandler) FindById(c *gin.Context) {
 
 	response := dto.LocationResponse {
         ID: result.ID.String(),
-		GroupID: result.GroupID,
 		UserID: result.UserID,
 		Latitude: result.Latitude,
 		Longitude: result.Longitude,

@@ -11,11 +11,10 @@ import (
 )
 
 func InitLocationRoutes(r *gin.Engine, db *gorm.DB) {
-	repoGroup := _repo.NewGroupRepository(db)
 	repoUser := _repo.NewUserRepository(db)
 
 	repo := _repo.NewLocationRepository(db)
-	uc := _uc.NewLocationUsecase(repo, repoGroup, repoUser)
+	uc := _uc.NewLocationUsecase(repo, repoUser)
 	handler := _handler.NewLocationHandler(uc)
 
 	locationRoutes := r.Group("/api/location")

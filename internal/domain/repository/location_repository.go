@@ -100,21 +100,6 @@ func (r *LocationRepository) Truncate() error {
 	return err
 }
 
-func (r *LocationRepository) FindByGroupID(groupID uuid.UUID) (*model.Location, error) {
-	var location model.Location
-
-	err := r.db.
-		Where("group_id = ?", groupID).
-		First(&location).
-		Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound){
-		return nil, err
-	}
-
-	return &location, err
-}
-
 func (r *LocationRepository) FindByUserID(userID uuid.UUID) (*model.Location, error) {
 	var location model.Location
 

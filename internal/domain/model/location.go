@@ -7,7 +7,6 @@ import (
 
 type Location struct {
     ID          uuid.UUID   `gorm:"type:uuid;primaryKey" json:"id"`
-    GroupID     uuid.UUID   `gorm:"not null" json:"grup_id"`
     UserID      uuid.UUID   `gorm:"not null" json:"user_id"`
     Latitude    float64     `gorm:"not null" json:"latitude"`
     Longitude   float64     `gorm:"not null" json:"longitude"`
