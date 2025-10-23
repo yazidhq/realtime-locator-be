@@ -2,14 +2,19 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/google/uuid"
 )
 
+type BroadcastMessage struct {
+    SenderID uuid.UUID
+    IsAdmin  bool
+    Payload  []byte
+}
+
 type Hub struct {
 	Clients    map[uuid.UUID]*Client
-	Broadcast  chan []byte
+	Broadcast  chan BroadcastMessage
 	Register   chan *Client
 	Unregister chan *Client
 }
@@ -20,7 +25,7 @@ func GetHub() *Hub {
 	if hubInstance == nil {
 		hubInstance = &Hub{
 			Clients:    make(map[uuid.UUID]*Client),
-			Broadcast:  make(chan []byte),
+			Broadcast:  make(chan BroadcastMessage),
 			Register:   make(chan *Client),
 			Unregister: make(chan *Client),
 		}
@@ -36,19 +41,16 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			if client == nil || client.UserID == uuid.Nil {
-				log.Println("Register: invalid client or empty UserID")
 				continue
 			}
 
 			if existing, ok := h.Clients[client.UserID]; ok {
-				log.Println("User", client.UserID, "reconnected")
 				existing.Conn.Close()
 				close(existing.Send)
 				delete(h.Clients, client.UserID)
 			}
 
 			h.Clients[client.UserID] = client
-			log.Println("Client connected:", client.UserID)
 
 		case client := <-h.Unregister:
 			if client == nil || client.UserID == uuid.Nil {
@@ -58,19 +60,21 @@ func (h *Hub) Run() {
 			if _, ok := h.Clients[client.UserID]; ok {
 				delete(h.Clients, client.UserID)
 				close(client.Send)
-				log.Println("Client disconnected:", client.UserID)
 			}
 
 		case message := <-h.Broadcast:
+			if message.IsAdmin {
+                continue
+            }
+
 			var locMsg LocationMessage
-			if err := json.Unmarshal(message, &locMsg); err != nil {
-				log.Println("Invalid message:", err)
+			if err := json.Unmarshal(message.Payload, &locMsg); err != nil {
 				continue
 			}
 
 			for _, client := range h.Clients {
 				select {
-				case client.Send <- message:
+				case client.Send <- message.Payload:
 				default:
 					if client.Conn != nil {
 						client.Conn.Close()

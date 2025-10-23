@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +12,7 @@ import (
 type Client struct {
 	ID     string
 	UserID uuid.UUID
+	Role   string
 	Conn   *websocket.Conn
 	Send   chan []byte
 	HubRef *Hub
@@ -26,17 +27,24 @@ func (c *Client) ReadPump() {
 	for {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Println("read error: ", err)
 			break
 		}
 
 		var loc LocationMessage
 		if err := json.Unmarshal(msg, &loc); err != nil {
-			log.Println("invalid message: ", err)
 			continue
 		}
 
-		c.HubRef.Broadcast <- msg
+        isAdmin := strings.EqualFold(c.Role, "admin")
+        if isAdmin {
+            continue
+        }
+
+        c.HubRef.Broadcast <- BroadcastMessage{
+            SenderID: c.UserID,
+            IsAdmin:  isAdmin,
+            Payload:  msg,
+        }
 	}
 }
 
@@ -46,7 +54,6 @@ func (c *Client) WritePump() {
 	for msg := range c.Send {
 		c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 		if err := c.Conn.WriteMessage(websocket.TextMessage, msg); err != nil {
-			log.Println("write error: ", err)
 			return
 		}
 	}

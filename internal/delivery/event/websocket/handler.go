@@ -32,13 +32,14 @@ func (u *LiveTrackHandler) LiveTrack(c *gin.Context) {
 		return
 	}
 
-	if _, err := u.repoUser.FindById(userIDParse); err != nil {
+	user, err := u.repoUser.FindById(userIDParse)
+	if err != nil {
 		responses.Error(c, http.StatusBadRequest, "user id not found in user")
 		return
 	}
 
 	if websocket.IsWebSocketUpgrade(c.Request) {
-		ServeWs(c.Writer, c.Request, userIDParse)
+		ServeWs(c.Writer, c.Request, user)
 		return
 	}
 
