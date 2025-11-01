@@ -21,6 +21,12 @@ func NewLiveTrackHandler(ru *repository.UserRepository) *LiveTrackHandler {
 func (u *LiveTrackHandler) LiveTrack(c *gin.Context) {
 	userID := c.Query("user_id")
 
+	userIDtoken, _ := c.Get("userID")
+	if userIDtoken != userID {
+		responses.Error(c, http.StatusBadRequest, "user id and user id from token not match")
+		return
+	}
+
 	if userID == "" {
 		responses.Error(c, http.StatusBadRequest, "user id is required")
 		return
