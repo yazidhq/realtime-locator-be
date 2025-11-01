@@ -9,9 +9,12 @@ import (
 )
 
 func InitWSRoutes(r *gin.Engine, db *gorm.DB) {
+	locationRepo := _repo.NewLocationRepository(db)
+	LocationRepository(locationRepo)
+
 	userRepo := _repo.NewUserRepository(db)
 	liveTrackHandler := NewLiveTrackHandler(userRepo)
-
+	
 	r.Use(middleware.AuthMiddleware())
 	r.GET("/api/live_track", liveTrackHandler.LiveTrack)
 }

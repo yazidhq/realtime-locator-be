@@ -1,7 +1,9 @@
 package websocket
 
 import (
+	_repo "TeamTrackerBE/internal/domain/repository"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -13,10 +15,12 @@ type BroadcastMessage struct {
 }
 
 type Hub struct {
-	Clients    map[uuid.UUID]*Client
-	Broadcast  chan BroadcastMessage
-	Register   chan *Client
-	Unregister chan *Client
+	Clients      map[uuid.UUID]*Client
+	Broadcast    chan BroadcastMessage
+	Register     chan *Client
+	Unregister   chan *Client
+	flushTickers map[uuid.UUID]*time.Ticker
+	locationRepo *_repo.LocationRepository
 }
 
 var hubInstance *Hub
@@ -28,12 +32,18 @@ func GetHub() *Hub {
 			Broadcast:  make(chan BroadcastMessage),
 			Register:   make(chan *Client),
 			Unregister: make(chan *Client),
+			flushTickers: make(map[uuid.UUID]*time.Ticker),
 		}
 
 		go hubInstance.Run()
 	}
 
 	return hubInstance
+}
+
+func LocationRepository(repo *_repo.LocationRepository) {
+	h := GetHub()
+	h.locationRepo = repo
 }
 
 func (h *Hub) Run() {
@@ -62,6 +72,8 @@ func (h *Hub) Run() {
 				close(client.Send)
 			}
 
+			h.StopFlushLoop(client.UserID, true)
+
 		case message := <-h.Broadcast:
 			if message.IsAdmin {
                 continue
@@ -72,6 +84,10 @@ func (h *Hub) Run() {
 				continue
 			}
 
+			locMsg.UserID = message.SenderID
+
+			h.CacheLocation(locMsg)
+
 			for _, client := range h.Clients {
 				select {
 				case client.Send <- message.Payload:
@@ -79,8 +95,10 @@ func (h *Hub) Run() {
 					if client.Conn != nil {
 						client.Conn.Close()
 					}
+
 					close(client.Send)
 					delete(h.Clients, client.UserID)
+					h.StopFlushLoop(client.UserID, true)
 				}
 			}
 		}
