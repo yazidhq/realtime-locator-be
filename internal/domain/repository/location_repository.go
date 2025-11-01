@@ -25,6 +25,14 @@ func (r *LocationRepository) Create(location *model.Location) (*model.Location, 
 	return location, err
 }
 
+func (r *LocationRepository) BulkCreate(locations []model.Location) error {
+	if len(locations) == 0 {
+		return nil
+	}
+	
+	return r.db.CreateInBatches(&locations, 200).Error
+}
+
 func (r *LocationRepository) Update(locationID uuid.UUID, req model.Location) (*model.Location, error) {
     var location model.Location
 

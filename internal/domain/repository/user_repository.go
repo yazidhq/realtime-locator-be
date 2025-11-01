@@ -25,6 +25,14 @@ func (r *UserRepository) Create(user *model.User) (*model.User, error) {
 	return user, err
 }
 
+func (r *UserRepository) BulkCreate(users []model.User) error {
+	if len(users) == 0 {
+		return nil
+	}
+	
+	return r.db.CreateInBatches(&users, 200).Error
+}
+
 func (r *UserRepository) Update(userID uuid.UUID, req model.User) (*model.User, error) {
     var user model.User
 
