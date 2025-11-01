@@ -1,8 +1,8 @@
 package websocket
 
 import (
+	"TeamTrackerBE/internal/config"
 	"TeamTrackerBE/internal/domain/model"
-	"TeamTrackerBE/internal/utils"
 	"encoding/json"
 	"log"
 	"time"
@@ -10,11 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	FlushInterval    = 30 * time.Second
+	RedisTTL         = 60 * time.Second
+	RedisListStart   = int64(0)
+	RedisListEnd     = int64(-1)
+	MaxRecordPerPush = 0
+)
+
 func (h *Hub) CacheLocation(loc LocationMessage) {
-	if !utils.IsCacheAvailable() {
+	if config.RedisClient == nil {
 		return
 	}
-
 	if loc.UserID == uuid.Nil {
 		return
 	}
@@ -25,13 +32,14 @@ func (h *Hub) CacheLocation(loc LocationMessage) {
 		return
 	}
 
-	if err := utils.ListRPush(key, string(payload)); err != nil {
+	if err := config.RedisClient.RPush(config.Ctx, key, string(payload)).Err(); err != nil {
 		log.Printf("redis rpush failed for %s: %v", key, err)
 		return
 	}
 
-	if ttl, err := utils.TTL(key); err == nil && (ttl < 0) {
-		_ = utils.Expire(key, 60*time.Second)
+	ttl, err := config.RedisClient.TTL(config.Ctx, key).Result()
+	if err == nil && ttl < 0 {
+		_ = config.RedisClient.Expire(config.Ctx, key, RedisTTL).Err()
 	}
 
 	if _, ok := h.flushTickers[loc.UserID]; !ok {
@@ -40,7 +48,7 @@ func (h *Hub) CacheLocation(loc LocationMessage) {
 }
 
 func (h *Hub) StartFlushLoop(userID uuid.UUID) {
-	tk := time.NewTicker(30 * time.Second)
+	tk := time.NewTicker(FlushInterval)
 	h.flushTickers[userID] = tk
 
 	go func(uid uuid.UUID, t *time.Ticker) {
@@ -61,12 +69,13 @@ func (h *Hub) StopFlushLoop(userID uuid.UUID, flushNow bool) {
 }
 
 func (h *Hub) FlushUserLocations(userID uuid.UUID) {
-	if !utils.IsCacheAvailable() || h.locationRepo == nil || userID == uuid.Nil {
+	if config.RedisClient == nil || h.locationRepo == nil || userID == uuid.Nil {
 		return
 	}
+
 	key := h.RedisKey(userID)
 
-	values, err := utils.ListLRange(key, 0, -1)
+	values, err := config.RedisClient.LRange(config.Ctx, key, RedisListStart, RedisListEnd).Result()
 	if err != nil {
 		log.Printf("redis lrange failed for %s: %v", key, err)
 		return
@@ -89,18 +98,19 @@ func (h *Hub) FlushUserLocations(userID uuid.UUID) {
 			Longitude: msg.Longitude,
 		})
 	}
+
 	if len(records) == 0 {
-		_ = utils.DeleteCache(key)
+		_ = config.RedisClient.Del(config.Ctx, key).Err()
 		return
 	}
 
 	if err := h.locationRepo.BulkCreate(records); err != nil {
 		log.Printf("bulk insert failed for user %s: %v", userID.String(), err)
-		_ = utils.Expire(key, 60*time.Second)
+		_ = config.RedisClient.Expire(config.Ctx, key, RedisTTL).Err()
 		return
 	}
 
-	if err := utils.DeleteCache(key); err != nil {
+	if err := config.RedisClient.Del(config.Ctx, key).Err(); err != nil {
 		log.Printf("redis del failed for %s: %v", key, err)
 	}
 }
