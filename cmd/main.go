@@ -19,7 +19,8 @@ func main() {
 	}
 
 	config.LoadEnv()
-
+	config.SetupCache()
+	
 	db := config.SetupDatabase()
 	db.AutoMigrate(model.Models...)
 

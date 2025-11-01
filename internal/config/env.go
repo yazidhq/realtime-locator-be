@@ -7,6 +7,7 @@ import (
 type EnvConfig struct {
 	App       App
 	Database  Database
+	Cache  	  Cache
 	JWT       JWT
 }
 
@@ -20,6 +21,13 @@ type Database struct {
 	User 	 string `json:"user"`
 	Password string `json:"password"`
 	Name 	 string `json:"name"`
+}
+
+type Cache struct {
+	Host 	 string `json:"host"`
+	Port 	 string `json:"port"`
+	Password string `json:"password"`
+	DB 		 string `json:"db"`
 }
 
 type JWT struct {
@@ -41,6 +49,13 @@ func LoadEnv() *EnvConfig {
 			User: getEnv("DB_USER", "postgres"),
 			Password: getEnv("DB_PASSWORD", "secret"),
 			Name: getEnv("DB_NAME", "mydb"),
+		},
+		
+		Cache: Cache{
+			Host: getEnv("REDIS_HOST", "localhost"),
+			Port: getEnv("REDIS_PORT", "6379"),
+			Password: getEnv("REDIS_PASSWORD", ""),
+			DB: getEnv("REDIS_DB", "0"),
 		},
 
 		JWT: JWT{
