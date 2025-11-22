@@ -14,6 +14,12 @@ type BroadcastMessage struct {
     Payload  []byte
 }
 
+type UserStatusMessage struct {
+    Type   string    `json:"type"`
+    UserID uuid.UUID `json:"user_id"`
+    Online bool      `json:"online"`
+}
+
 type Hub struct {
 	Clients      map[uuid.UUID]*Client
 	Broadcast    chan BroadcastMessage
@@ -21,6 +27,7 @@ type Hub struct {
 	Unregister   chan *Client
 	flushTickers map[uuid.UUID]*time.Ticker
 	locationRepo *_repo.LocationRepository
+	Online 		 map[uuid.UUID]bool
 }
 
 var hubInstance *Hub
@@ -28,11 +35,12 @@ var hubInstance *Hub
 func GetHub() *Hub {
 	if hubInstance == nil {
 		hubInstance = &Hub{
-			Clients:    make(map[uuid.UUID]*Client),
-			Broadcast:  make(chan BroadcastMessage),
-			Register:   make(chan *Client),
+			Clients: make(map[uuid.UUID]*Client),
+			Broadcast: make(chan BroadcastMessage),
+			Register: make(chan *Client),
 			Unregister: make(chan *Client),
 			flushTickers: make(map[uuid.UUID]*time.Ticker),
+			Online: make(map[uuid.UUID]bool),
 		}
 
 		go hubInstance.Run()
@@ -62,6 +70,28 @@ func (h *Hub) Run() {
 
 			h.Clients[client.UserID] = client
 
+			h.Online[client.UserID] = true
+            status := UserStatusMessage{
+                Type:   "user_status",
+                UserID: client.UserID,
+                Online: true,
+            }
+
+            if b, err := json.Marshal(status); err == nil {
+                for _, c := range h.Clients {
+                    select {
+                    case c.Send <- b:
+                    default:
+                        if c.Conn != nil {
+                            c.Conn.Close()
+                        }
+                        close(c.Send)
+                        delete(h.Clients, c.UserID)
+                        h.StopFlushLoop(c.UserID, true)
+                    }
+                }
+            }
+
 		case client := <-h.Unregister:
 			if client == nil || client.UserID == uuid.Nil {
 				continue
@@ -71,6 +101,28 @@ func (h *Hub) Run() {
 				delete(h.Clients, client.UserID)
 				close(client.Send)
 			}
+
+			h.Online[client.UserID] = false
+            status := UserStatusMessage{
+                Type:   "user_status",
+                UserID: client.UserID,
+                Online: false,
+            }
+
+            if b, err := json.Marshal(status); err == nil {
+                for _, c := range h.Clients {
+                    select {
+                    case c.Send <- b:
+                    default:
+                        if c.Conn != nil {
+                            c.Conn.Close()
+                        }
+                        close(c.Send)
+                        delete(h.Clients, c.UserID)
+                        h.StopFlushLoop(c.UserID, true)
+                    }
+                }
+            }
 
 			h.StopFlushLoop(client.UserID, true)
 
