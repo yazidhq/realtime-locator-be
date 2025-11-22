@@ -76,8 +76,29 @@ func (h *Hub) Run() {
 
 		case message := <-h.Broadcast:
 			if message.IsAdmin {
-                continue
-            }
+				var chatMsg ChatMessage
+				if err := json.Unmarshal(message.Payload, &chatMsg); err != nil {
+					continue
+				}
+
+				targetClient, ok := h.Clients[chatMsg.UserRecieverID]
+				if !ok {
+					continue
+				}
+
+				select {
+				case targetClient.Send <- message.Payload:
+				default:
+					if targetClient.Conn != nil {
+						targetClient.Conn.Close()
+					}
+					close(targetClient.Send)
+					delete(h.Clients, targetClient.UserID)
+					h.StopFlushLoop(targetClient.UserID, true)
+				}
+
+				continue
+			}
 
 			var locMsg LocationMessage
 			if err := json.Unmarshal(message.Payload, &locMsg); err != nil {
