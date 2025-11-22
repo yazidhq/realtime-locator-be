@@ -56,3 +56,23 @@ func (u *LiveTrackHandler) LiveTrack(c *gin.Context) {
 
 	responses.Success(c, "All good mate, NEXT CONNECT!", nil)
 }
+
+func (h *LiveTrackHandler) GetUserOnlineStatus(c *gin.Context) {
+    idStr := c.Param("id")
+
+    uid, err := uuid.Parse(idStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+        return
+    }
+
+	online := GetHub().IsOnline(uid)
+	c.JSON(http.StatusOK, gin.H{
+		"user_id": uid,
+		"online":  online,
+	})
+}
+
+func (h *Hub) IsOnline(userID uuid.UUID) bool {
+    return h.Online[userID]
+}

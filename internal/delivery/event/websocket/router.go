@@ -17,4 +17,5 @@ func InitWSRoutes(r *gin.Engine, db *gorm.DB) {
 	
 	r.Use(middleware.AuthMiddleware())
 	r.GET("/api/live_track", liveTrackHandler.LiveTrack)
+	r.GET("/api/users/:id/online", liveTrackHandler.GetUserOnlineStatus)
 }
