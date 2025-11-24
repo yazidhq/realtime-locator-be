@@ -62,15 +62,17 @@ func (h *LiveTrackHandler) GetUserOnlineStatus(c *gin.Context) {
 
     uid, err := uuid.Parse(idStr)
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		responses.Error(c, http.StatusBadRequest, "invalid user id")
         return
     }
 
 	online := GetHub().IsOnline(uid)
-	c.JSON(http.StatusOK, gin.H{
-		"user_id": uid,
-		"online":  online,
-	})
+	response := map[string]any{
+        "user_id": uid.String(),
+        "online":  online,
+    }
+
+	responses.Success(c, "Nice!", response)
 }
 
 func (h *Hub) IsOnline(userID uuid.UUID) bool {
