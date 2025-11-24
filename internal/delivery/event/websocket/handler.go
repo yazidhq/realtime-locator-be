@@ -58,17 +58,17 @@ func (u *RealtimeHubHandler) RealtimeHub(c *gin.Context) {
 }
 
 func (h *RealtimeHubHandler) GetUserOnlineStatus(c *gin.Context) {
-    idStr := c.Param("id")
+    userID := c.Param("id")
 
-    uid, err := uuid.Parse(idStr)
+    userIDParse, err := uuid.Parse(userID)
     if err != nil {
 		responses.Error(c, http.StatusBadRequest, "invalid user id")
         return
     }
 
-	online := GetHub().IsOnline(uid)
+	online := GetHub().IsOnline(userIDParse)
 	response := map[string]any{
-        "user_id": uid.String(),
+        "user_id": userIDParse.String(),
         "online":  online,
     }
 
