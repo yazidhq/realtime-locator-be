@@ -12,3 +12,9 @@ type ChatMessage struct {
 	UserRecieverID  uuid.UUID `json:"user_receiver_id"`
 	Message 		string 	  `json:"message"`
 }
+
+type UserStatusMessage struct {
+	Type	string 	  `json:"type"`
+    UserID	uuid.UUID `json:"user_id"`
+    Online	bool 	  `json:"message"`
+}

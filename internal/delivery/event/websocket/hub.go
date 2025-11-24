@@ -14,12 +14,6 @@ type BroadcastMessage struct {
     Payload  []byte
 }
 
-type UserStatusMessage struct {
-    Type   string    `json:"type"`
-    UserID uuid.UUID `json:"user_id"`
-    Online bool      `json:"online"`
-}
-
 type Hub struct {
 	Clients      map[uuid.UUID]*Client
 	Broadcast    chan BroadcastMessage
