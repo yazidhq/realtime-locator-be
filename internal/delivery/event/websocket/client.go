@@ -30,21 +30,42 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		var loc LocationMessage
-		if err := json.Unmarshal(msg, &loc); err != nil {
+		var meta struct{
+			Type string `json:"type"`
+		}
+		
+		if err := json.Unmarshal(msg, &meta); err != nil {
 			continue
 		}
 
-        isAdmin := strings.EqualFold(c.Role, "admin")
-        if isAdmin {
-            continue
-        }
+		isAdmin := strings.EqualFold(c.Role, "admin")
 
-        c.HubRef.Broadcast <- BroadcastMessage{
-            SenderID: c.UserID,
-            IsAdmin:  isAdmin,
-            Payload:  msg,
-        }
+		switch meta.Type {
+		case "user_location":
+			if isAdmin {
+				continue
+			}
+
+			c.HubRef.Broadcast <- BroadcastMessage{
+				SenderID: c.UserID,
+				IsAdmin:  false,
+				Payload:  msg,
+			}
+
+		case "user_message":
+			if !isAdmin {
+				continue
+			}
+
+			c.HubRef.Broadcast <- BroadcastMessage{
+				SenderID: c.UserID,
+				IsAdmin:  true,
+				Payload:  msg,
+			}
+
+		default:
+			continue
+		}
 	}
 }
 
