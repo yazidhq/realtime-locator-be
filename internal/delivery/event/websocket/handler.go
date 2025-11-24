@@ -10,15 +10,15 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type LiveTrackHandler struct {
+type RealtimeHubHandler struct {
 	repoUser repository.UserRepository
 }
 
-func NewLiveTrackHandler(ru *repository.UserRepository) *LiveTrackHandler {
-	return &LiveTrackHandler{ repoUser: *ru }
+func NewRealtimeHubHandler(ru *repository.UserRepository) *RealtimeHubHandler {
+	return &RealtimeHubHandler{ repoUser: *ru }
 }
 
-func (u *LiveTrackHandler) LiveTrack(c *gin.Context) {
+func (u *RealtimeHubHandler) RealtimeHub(c *gin.Context) {
 	userID := c.Query("user_id")
 
 	if userID == "" {
@@ -57,7 +57,7 @@ func (u *LiveTrackHandler) LiveTrack(c *gin.Context) {
 	responses.Success(c, "All good mate, NEXT CONNECT!", nil)
 }
 
-func (h *LiveTrackHandler) GetUserOnlineStatus(c *gin.Context) {
+func (h *RealtimeHubHandler) GetUserOnlineStatus(c *gin.Context) {
     idStr := c.Param("id")
 
     uid, err := uuid.Parse(idStr)

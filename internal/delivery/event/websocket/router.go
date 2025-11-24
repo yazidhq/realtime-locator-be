@@ -13,9 +13,9 @@ func InitWSRoutes(r *gin.Engine, db *gorm.DB) {
 	LocationRepository(locationRepo)
 
 	userRepo := _repo.NewUserRepository(db)
-	liveTrackHandler := NewLiveTrackHandler(userRepo)
-	
+	realtimeHubHandler := NewRealtimeHubHandler(userRepo)
+
 	r.Use(middleware.AuthMiddleware())
-	r.GET("/api/live_track", liveTrackHandler.LiveTrack)
-	r.GET("/api/users/:id/online", liveTrackHandler.GetUserOnlineStatus)
+	r.GET("/api/realtime_hub", realtimeHubHandler.RealtimeHub)
+	r.GET("/api/users/:id/online", realtimeHubHandler.GetUserOnlineStatus)
 }
