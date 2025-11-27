@@ -41,7 +41,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
         return
     }
 
-    token, refreshToken, _, err := h.uc.Login(req.Email, req.Password)
+    accessToken, refreshToken, _, err := h.uc.Login(req.Email, req.Password)
     if err != nil {
         responses.Error(c, http.StatusUnauthorized, "Invalid email or password")
         return
@@ -54,7 +54,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
         Username: registered.Username,
         Email: registered.Email,
         PhoneNumber: registered.PhoneNumber,
-        Token: token,
+        AccessToken: accessToken,
         RefreshToken: refreshToken,
     }
 
@@ -68,7 +68,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
         return
     }
 
-    token, refreshToken, user, err := h.uc.Login(req.Email, req.Password)
+    accessToken, refreshToken, user, err := h.uc.Login(req.Email, req.Password)
     if err != nil {
         responses.Error(c, http.StatusUnauthorized, "Invalid email or password")
         return
@@ -79,7 +79,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
         Name: user.Name,
         Email: user.Email,
         PhoneNumber: user.PhoneNumber,
-        Token: token,
+        AccessToken: accessToken,
         RefreshToken: refreshToken,
     }
 
@@ -98,14 +98,14 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
         return
     }
 
-    newToken, newRefreshToken, err := h.uc.RefreshToken(req.RefreshToken)
+    newAccessToken, newRefreshToken, err := h.uc.RefreshToken(req.RefreshToken)
     if err != nil {
         responses.Error(c, http.StatusUnauthorized, "Invalid or expired refresh token: "+err.Error())
         return
     }
 
     response := dto.RefreshTokenResponse{
-        Token:        newToken,
+        AccessToken: newAccessToken,
         RefreshToken: newRefreshToken,
     }
 

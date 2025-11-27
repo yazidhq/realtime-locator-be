@@ -71,7 +71,7 @@ func (u *AuthUsecase) Login(email, password string) (string, string, *model.User
         return "", "", nil, errors.New("invalid email or password")
     }
 
-    token, err := utils.GenerateJWT(found.ID, model.Role(found.Role))
+    accessToken, err := utils.GenerateJWT(found.ID, model.Role(found.Role))
     if err != nil {
         return "", "", nil, err
     }
@@ -81,7 +81,7 @@ func (u *AuthUsecase) Login(email, password string) (string, string, *model.User
         return "", "", nil, err
     }
 
-    return token, refreshToken, found, nil
+    return accessToken, refreshToken, found, nil
 }
 
 func (u *AuthUsecase) RefreshToken(refreshToken string) (string, string, error) {
@@ -95,7 +95,7 @@ func (u *AuthUsecase) RefreshToken(refreshToken string) (string, string, error) 
         return "", "", errors.New("user not found")
     }
 
-    newToken, err := utils.GenerateJWT(user.ID, model.Role(user.Role))
+    newAccessToken, err := utils.GenerateJWT(user.ID, model.Role(user.Role))
     if err != nil {
         return "", "", err
     }
@@ -105,5 +105,5 @@ func (u *AuthUsecase) RefreshToken(refreshToken string) (string, string, error) 
         return "", "", err
     }
 
-    return newToken, newRefreshToken, nil
+    return newAccessToken, newRefreshToken, nil
 }

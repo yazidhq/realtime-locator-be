@@ -31,7 +31,7 @@ type RegisterResponse struct {
 	Username 	 string     `json:"username"`
 	Email    	 string     `json:"email"`
 	PhoneNumber	 string     `json:"phone_number"`
-	Token    	 string     `json:"token"`
+	AccessToken  string     `json:"access_token"`
 	RefreshToken string     `json:"refresh_token"`
 }
 
@@ -40,11 +40,11 @@ type LoginResponse struct {
     Name       	 string	    `json:"name"`
     Email        string	    `json:"email"`
     PhoneNumber	 string	    `json:"phone_number"`
-    Token        string     `json:"token"`
+    AccessToken	 string     `json:"access_token"`
     RefreshToken string     `json:"refresh_token"`
 }
 
 type RefreshTokenResponse struct {
-    Token        string `json:"token"`
+    AccessToken        string `json:"access_token"`
     RefreshToken string `json:"refresh_token"`
 }
