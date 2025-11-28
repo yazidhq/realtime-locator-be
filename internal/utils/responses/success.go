@@ -43,15 +43,28 @@ type PaginatedResponse struct {
 }
 
 func SuccessPaginated(c *gin.Context, message string, data any, page, limit, total int) {
-	pages := (total + limit - 1) / limit
+	pages := 0
+	if limit <= 0 {
+		if total > 0 {
+			pages = 1
+		} else {
+			pages = 0
+		}
+		
+		limit = total
+		page = 1
+	} else {
+		pages = (total + limit - 1) / limit
+	}
+
 	c.JSON(http.StatusOK, PaginatedResponse{
-		Status:  "success",
+		Status: "success",
 		Message: message,
-		Data:    data,
+		Data: data,
 		Pagination: PaginationMeta{
-			Page:       page,
-			Limit:      limit,
-			Rows:  total,
+			Page: page,
+			Limit: limit,
+			Rows: total,
 			Pages: pages,
 		},
 	})
