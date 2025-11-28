@@ -77,11 +77,18 @@ func (r *LocationRepository) FindAll(page, limit int, filters []utils.FilterOpti
         return nil, 0, err
     }
 
-	offset := (page - 1) * limit
+	if page <= 0 {
+        page = 1
+    }
 
 	db = utils.ApplyDynamicSort(db, sorts, "created_at DESC")
 
-	if err := db.Offset(offset).Limit(limit).Find(&locations).Error; err != nil {
+	if limit > 0 {
+        offset := (page - 1) * limit
+        db = db.Offset(offset).Limit(limit)
+    }
+
+	if err := db.Find(&locations).Error; err != nil {
         return nil, 0, err
     }
 

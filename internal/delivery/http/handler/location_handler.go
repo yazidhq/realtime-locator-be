@@ -102,19 +102,12 @@ func (h LocationHandler) FindAll(c *gin.Context) {
     page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
     limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
-    if page <= 0 {
-        page = 1
-    }
-    if limit <= 0 {
-        limit = 10
-    }
-
 	allowedOps := []string{"=", "like", ">", "<"}
 	filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
 
 	allowedFields := []string{"created_at", "latitude", "longitude", "user_id"}
 	sorts := utils.BuildDynamicSorts(c.Request.URL.Query(), allowedFields)
-	
+
 	locations, total, err := h.uc.FindAll(page, limit, filters, sorts)
     if err != nil {
         responses.Error(c, http.StatusInternalServerError, err.Error())

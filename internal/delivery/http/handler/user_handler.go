@@ -102,13 +102,6 @@ func (h UserHandler) FindAll(c *gin.Context) {
     page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
     limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
-    if page <= 0 {
-        page = 1
-    }
-    if limit <= 0 {
-        limit = 10
-    }
-
 	allowedOps := []string{"=", "like", ">", "<"}
 	filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
 
