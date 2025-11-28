@@ -64,7 +64,7 @@ func (r *UserRepository) Delete(userID uuid.UUID) (*model.User, error) {
 	return &user, err
 }
 
-func (r *UserRepository) FindAll(page, limit int, filters []utils.FilterOptions) ([]model.User, int, error) {
+func (r *UserRepository) FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.User, int, error) {
     var users []model.User
     var total int64
 
@@ -78,8 +78,10 @@ func (r *UserRepository) FindAll(page, limit int, filters []utils.FilterOptions)
     }
 
     offset := (page - 1) * limit
+	
+	db = utils.ApplyDynamicSort(db, sorts, "created_at DESC")
 
-    if err := db.Order("created_at DESC").Offset(offset).Limit(limit).Find(&users).Error; err != nil {
+	if err := db.Offset(offset).Limit(limit).Find(&users).Error; err != nil {
         return nil, 0, err
     }
 

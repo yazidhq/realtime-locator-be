@@ -121,8 +121,8 @@ func (u *UserUsecase) Delete(userID uuid.UUID) (*model.User, error) {
 	return deleted, nil
 }
 
-func (u *UserUsecase) FindAll(page, limit int, filters []utils.FilterOptions) ([]model.User, int, error) {
-    result, total, err := u.repo.FindAll(page, limit, filters)
+func (u *UserUsecase) FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.User, int, error) {
+	result, total, err := u.repo.FindAll(page, limit, filters, sorts)
     if err != nil {
         return nil, 0, err
     }

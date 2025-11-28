@@ -16,7 +16,7 @@ type UserInterface interface {
 	Create(user *dto.UserCreateRequest) (*model.User, error)
 	Update(userID uuid.UUID, req *dto.UserUpdateRequest) (*model.User, error)
 	Delete(userID uuid.UUID) (*model.User, error)
-	FindAll(page, limit int, filters []utils.FilterOptions) ([]model.User, int, error)
+	FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.User, int, error)
 	FindById(userID uuid.UUID) (*model.User, error)
 	Truncate() (error)
 }
@@ -109,10 +109,13 @@ func (h UserHandler) FindAll(c *gin.Context) {
         limit = 10
     }
 
-    allowedOps := []string{"=", "like", ">", "<"}
-    filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
+	allowedOps := []string{"=", "like", ">", "<"}
+	filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
 
-    users, total, err := h.uc.FindAll(page, limit, filters)
+	allowedFields := []string{"created_at", "name", "email", "username", "phone_number"}
+	sorts := utils.BuildDynamicSorts(c.Request.URL.Query(), allowedFields)
+
+	users, total, err := h.uc.FindAll(page, limit, filters, sorts)
     if err != nil {
         responses.Error(c, http.StatusInternalServerError, err.Error())
         return

@@ -82,8 +82,8 @@ func (u *LocationUsecase) Delete(locationID uuid.UUID) (*model.Location, error) 
 	return deleted, nil
 }
 
-func (u *LocationUsecase) FindAll(page, limit int, filters []utils.FilterOptions) ([]model.Location, int, error) {
-    result, total, err := u.repo.FindAll(page, limit, filters)
+func (u *LocationUsecase) FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.Location, int, error) {
+	result, total, err := u.repo.FindAll(page, limit, filters, sorts)
     if err != nil {
         return nil, 0, err
     }

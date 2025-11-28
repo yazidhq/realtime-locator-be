@@ -64,7 +64,7 @@ func (r *LocationRepository) Delete(locationID uuid.UUID) (*model.Location, erro
 	return &location, err
 }
 
-func (r *LocationRepository) FindAll(page, limit int, filters []utils.FilterOptions) ([]model.Location, int, error) {
+func (r *LocationRepository) FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.Location, int, error) {
     var locations []model.Location
     var total int64
 
@@ -77,9 +77,11 @@ func (r *LocationRepository) FindAll(page, limit int, filters []utils.FilterOpti
         return nil, 0, err
     }
 
-    offset := (page - 1) * limit
+	offset := (page - 1) * limit
 
-    if err := db.Order("created_at DESC").Offset(offset).Limit(limit).Find(&locations).Error; err != nil {
+	db = utils.ApplyDynamicSort(db, sorts, "created_at DESC")
+
+	if err := db.Offset(offset).Limit(limit).Find(&locations).Error; err != nil {
         return nil, 0, err
     }
 

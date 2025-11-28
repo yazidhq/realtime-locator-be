@@ -16,7 +16,7 @@ type LocationInterface interface {
 	Create(location *dto.LocationCreateRequest) (*model.Location, error)
 	Update(locationID uuid.UUID, req *dto.LocationUpdateRequest) (*model.Location, error)
 	Delete(locationID uuid.UUID) (*model.Location, error)
-	FindAll(page, limit int, filters []utils.FilterOptions) ([]model.Location, int, error)
+	FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.Location, int, error)
 	FindById(locationID uuid.UUID) (*model.Location, error)
 	Truncate() (error)
 }
@@ -109,10 +109,13 @@ func (h LocationHandler) FindAll(c *gin.Context) {
         limit = 10
     }
 
-    allowedOps := []string{"=", "like", ">", "<"}
-    filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
+	allowedOps := []string{"=", "like", ">", "<"}
+	filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
 
-    locations, total, err := h.uc.FindAll(page, limit, filters)
+	allowedFields := []string{"created_at", "latitude", "longitude", "user_id"}
+	sorts := utils.BuildDynamicSorts(c.Request.URL.Query(), allowedFields)
+	
+	locations, total, err := h.uc.FindAll(page, limit, filters, sorts)
     if err != nil {
         responses.Error(c, http.StatusInternalServerError, err.Error())
         return
