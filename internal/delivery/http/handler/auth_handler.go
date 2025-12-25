@@ -1,12 +1,14 @@
 package handler
 
 import (
+	ws "TeamTrackerBE/internal/delivery/event/websocket"
 	"TeamTrackerBE/internal/delivery/http/dto"
 	"TeamTrackerBE/internal/domain/model"
 	"TeamTrackerBE/internal/utils/responses"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type AuthInterface interface {
@@ -110,4 +112,21 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
     }
 
     responses.Success(c, "Token refreshed successfully", response)
+}
+
+func (h *AuthHandler) Logout(c *gin.Context) {
+    uidVal, exists := c.Get("userID")
+    if !exists {
+        responses.Error(c, http.StatusUnauthorized, "token user not found")
+        return
+    }
+
+    userID, ok := uidVal.(uuid.UUID)
+    if !ok {
+        responses.Error(c, http.StatusUnauthorized, "invalid user id in token context")
+        return
+    }
+
+    ws.GetHub().ForceOffline(userID)
+    responses.Success(c, "Logout successfully", map[string]any{"user_id": userID.String()})
 }

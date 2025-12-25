@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 
 	_handler "TeamTrackerBE/internal/delivery/http/handler"
+	"TeamTrackerBE/internal/delivery/http/middleware"
 	_repo "TeamTrackerBE/internal/domain/repository"
 	_uc "TeamTrackerBE/internal/usecase"
 )
@@ -18,4 +19,8 @@ func InitAuthRoutes(r *gin.Engine, db *gorm.DB) {
 	authRoutes.POST("/register", handler.Register)
 	authRoutes.POST("/login", handler.Login)
 	authRoutes.POST("/refresh_token", handler.RefreshToken)
+
+	authProtected := r.Group("/api/auth")
+	authProtected.Use(middleware.AuthMiddleware())
+	authProtected.POST("/logout", handler.Logout)
 }
