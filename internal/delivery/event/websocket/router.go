@@ -18,4 +18,5 @@ func InitWSRoutes(r *gin.Engine, db *gorm.DB) {
 	r.Use(middleware.AuthMiddleware())
 	r.GET("/api/realtime_hub", realtimeHubHandler.RealtimeHub)
 	r.GET("/api/users/:id/online", realtimeHubHandler.GetUserOnlineStatus)
+	r.GET("/api/users/online/list", realtimeHubHandler.GetAllOnlineUsers)
 }

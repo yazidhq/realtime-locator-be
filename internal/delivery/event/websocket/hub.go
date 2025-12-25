@@ -22,6 +22,8 @@ type Hub struct {
 	flushTickers map[uuid.UUID]*time.Ticker
 	locationRepo *_repo.LocationRepository
 	Online 		 map[uuid.UUID]bool
+	offlineGrace map[uuid.UUID]time.Time
+	offlineTicker *time.Ticker
 }
 
 var hubInstance *Hub
@@ -35,6 +37,8 @@ func GetHub() *Hub {
 			Unregister: make(chan *Client),
 			flushTickers: make(map[uuid.UUID]*time.Ticker),
 			Online: make(map[uuid.UUID]bool),
+			offlineGrace: make(map[uuid.UUID]time.Time),
+			offlineTicker: time.NewTicker(1 * time.Second),
 		}
 
 		go hubInstance.Run()
@@ -58,11 +62,13 @@ func (h *Hub) Run() {
 
 			if existing, ok := h.Clients[client.UserID]; ok {
 				existing.Conn.Close()
-				close(existing.Send)
+				safeCloseSend(existing.Send)
 				delete(h.Clients, client.UserID)
 			}
 
 			h.Clients[client.UserID] = client
+
+			delete(h.offlineGrace, client.UserID)
 
 			h.Online[client.UserID] = true
             status := UserStatusMessage{
@@ -76,10 +82,10 @@ func (h *Hub) Run() {
                     select {
                     case c.Send <- b:
                     default:
-                        if c.Conn != nil {
-                            c.Conn.Close()
-                        }
-                        close(c.Send)
+						if c.Conn != nil {
+							c.Conn.Close()
+						}
+						safeCloseSend(c.Send)
                         delete(h.Clients, c.UserID)
                         h.StopFlushLoop(c.UserID, true)
                     }
@@ -93,32 +99,12 @@ func (h *Hub) Run() {
 
 			if _, ok := h.Clients[client.UserID]; ok {
 				delete(h.Clients, client.UserID)
-				close(client.Send)
+				safeCloseSend(client.Send)
 			}
 
-			h.Online[client.UserID] = false
-            status := UserStatusMessage{
-                Type:   "user_status",
-                UserID: client.UserID,
-                Online: false,
-            }
-
-            if b, err := json.Marshal(status); err == nil {
-                for _, c := range h.Clients {
-                    select {
-                    case c.Send <- b:
-                    default:
-                        if c.Conn != nil {
-                            c.Conn.Close()
-                        }
-                        close(c.Send)
-                        delete(h.Clients, c.UserID)
-                        h.StopFlushLoop(c.UserID, true)
-                    }
-                }
-            }
-
-			h.StopFlushLoop(client.UserID, true)
+			// Schedule offline after a grace period to survive quick refreshes
+			uid := client.UserID
+			h.offlineGrace[uid] = time.Now().Add(10 * time.Second)
 
 		case message := <-h.Broadcast:
 			if message.IsAdmin {
@@ -138,7 +124,7 @@ func (h *Hub) Run() {
 					if targetClient.Conn != nil {
 						targetClient.Conn.Close()
 					}
-					close(targetClient.Send)
+					safeCloseSend(targetClient.Send)
 					delete(h.Clients, targetClient.UserID)
 					h.StopFlushLoop(targetClient.UserID, true)
 				}
@@ -163,10 +149,98 @@ func (h *Hub) Run() {
 						client.Conn.Close()
 					}
 
-					close(client.Send)
+					safeCloseSend(client.Send)
 					delete(h.Clients, client.UserID)
 					h.StopFlushLoop(client.UserID, true)
 				}
+				// Periodically check for users whose grace period expired
+				select {
+				case <-h.offlineTicker.C:
+					now := time.Now()
+					for uid, until := range h.offlineGrace {
+						if now.After(until) {
+							// If user hasn't re-registered, mark offline and broadcast
+							if _, still := h.Clients[uid]; !still {
+								h.Online[uid] = false
+								status := UserStatusMessage{
+									Type:   "user_status",
+									UserID: uid,
+									Online: false,
+								}
+								if b, err := json.Marshal(status); err == nil {
+									for _, c := range h.Clients {
+										select {
+										case c.Send <- b:
+										default:
+											if c.Conn != nil {
+												c.Conn.Close()
+											}
+											safeCloseSend(c.Send)
+											delete(h.Clients, c.UserID)
+											h.StopFlushLoop(c.UserID, true)
+										}
+									}
+								}
+								h.StopFlushLoop(uid, true)
+							}
+							delete(h.offlineGrace, uid)
+						}
+					}
+				default:
+					// no-op
+				}
+			}
+		}
+	}
+}
+
+func safeCloseSend(ch chan []byte) {
+	if ch == nil {
+		return
+	}
+	defer func() {
+		_ = recover()
+	}()
+	close(ch)
+}
+
+// ForceOffline immediately marks a user offline and broadcasts the status, closing any active connection and cancelling any grace period.
+func (h *Hub) ForceOffline(userID uuid.UUID) {
+	if userID == uuid.Nil {
+		return
+	}
+
+	// Cancel any pending grace period
+	delete(h.offlineGrace, userID)
+
+	// Close and remove active client connection if exists
+	if client, ok := h.Clients[userID]; ok {
+		if client.Conn != nil {
+			client.Conn.Close()
+		}
+		safeCloseSend(client.Send)
+		delete(h.Clients, userID)
+		h.StopFlushLoop(userID, true)
+	}
+
+	h.Online[userID] = false
+	status := UserStatusMessage{
+		Type:   "user_status",
+		UserID: userID,
+		Online: false,
+	}
+
+	if b, err := json.Marshal(status); err == nil {
+		for _, c := range h.Clients {
+			select {
+			case c.Send <- b:
+			default:
+				if c.Conn != nil {
+					c.Conn.Close()
+				}
+				safeCloseSend(c.Send)
+				delete(h.Clients, c.UserID)
+				h.StopFlushLoop(c.UserID, true)
 			}
 		}
 	}

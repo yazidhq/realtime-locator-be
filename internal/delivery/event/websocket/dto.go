@@ -20,3 +20,8 @@ type UserStatusMessage struct {
     UserID	uuid.UUID `json:"user_id"`
 	Online	bool 	  `json:"online"`
 }
+
+type OnlineUsersMessage struct {
+	Type  string      `json:"type"`
+	Users []uuid.UUID `json:"users"`
+}

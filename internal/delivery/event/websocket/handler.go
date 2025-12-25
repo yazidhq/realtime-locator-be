@@ -75,6 +75,24 @@ func (h *RealtimeHubHandler) GetUserOnlineStatus(c *gin.Context) {
 	responses.Success(c, "Nice!", response)
 }
 
+func (h *RealtimeHubHandler) GetAllOnlineUsers(c *gin.Context) {
+	onlineUsers := GetHub().GetAllOnlineUsers()
+	response := map[string]any{
+		"online_users": onlineUsers,
+	}
+	responses.Success(c, "Online users retrieved", response)
+}
+
 func (h *Hub) IsOnline(userID uuid.UUID) bool {
     return h.Online[userID]
+}
+
+func (h *Hub) GetAllOnlineUsers() []uuid.UUID {
+    var onlineUsers []uuid.UUID
+    for userID, online := range h.Online {
+        if online {
+            onlineUsers = append(onlineUsers, userID)
+        }
+    }
+    return onlineUsers
 }

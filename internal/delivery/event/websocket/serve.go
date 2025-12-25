@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"TeamTrackerBE/internal/domain/model"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -28,6 +29,24 @@ func ServeWs(w http.ResponseWriter, r *http.Request, user *model.User) {
 	}
 
 	hub.Register <- client
+
+	// Send list of all online users to the new client
+	onlineUsers := hub.GetAllOnlineUsers()
+	onlineMsg := OnlineUsersMessage{
+		Type: "online_users_list",
+		Users: onlineUsers,
+	}
+
+	if b, err := json.Marshal(onlineMsg); err == nil {
+		select {
+		case client.Send <- b:
+		default:
+			if client.Conn != nil {
+				client.Conn.Close()
+			}
+			safeCloseSend(client.Send)
+		}
+	}
 
 	go client.WritePump()
 	go client.ReadPump()
