@@ -6,6 +6,7 @@ import (
 	"TeamTrackerBE/internal/domain/repository"
 	"TeamTrackerBE/internal/utils"
 	"TeamTrackerBE/internal/utils/responses"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -105,4 +106,52 @@ func (u *LocationUsecase) Truncate() error {
 		return err
 	}
 	return nil
+}
+
+func (u *LocationUsecase) HistoryByUser(userID uuid.UUID) ([]dto.LocationHistoryGroupResponse, error) {
+	if _, err := u.repoUser.FindById(userID); err != nil {
+		return nil, responses.NewBadRequestError("user id not found in user")
+	}
+
+	locations, err := u.repo.FindAllByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	jakartaLoc, err := time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		jakartaLoc = time.Local
+	}
+
+	todayKey := time.Now().In(jakartaLoc).Format("02-01-2006")
+
+	groups := make([]dto.LocationHistoryGroupResponse, 0)
+	var currentDate string
+	var currentIndex int = -1
+
+	for _, loc := range locations {
+		locTime := loc.CreatedAt.In(jakartaLoc)
+		dateKey := locTime.Format("02-01-2006")
+		if dateKey == todayKey {
+			continue
+		}
+		if dateKey != currentDate {
+			currentDate = dateKey
+			groups = append(groups, dto.LocationHistoryGroupResponse{
+				Date:      dateKey,
+				Locations: []dto.LocationHistoryItemResponse{},
+			})
+			currentIndex++
+		}
+
+		groups[currentIndex].Locations = append(groups[currentIndex].Locations, dto.LocationHistoryItemResponse{
+			ID:        loc.ID.String(),
+			UserID:    loc.UserID,
+			Latitude:  loc.Latitude,
+			Longitude: loc.Longitude,
+			CreatedAt: locTime,
+		})
+	}
+
+	return groups, nil
 }

@@ -131,3 +131,15 @@ func (r *LocationRepository) FindByUserID(userID uuid.UUID) (*model.Location, er
 
 	return &location, err
 }
+
+func (r *LocationRepository) FindAllByUserID(userID uuid.UUID) ([]model.Location, error) {
+	var locations []model.Location
+
+	err := r.db.
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Find(&locations).
+		Error
+
+	return locations, err
+}

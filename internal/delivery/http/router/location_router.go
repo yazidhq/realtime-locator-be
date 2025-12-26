@@ -21,6 +21,7 @@ func InitLocationRoutes(r *gin.Engine, db *gorm.DB) {
 	locationRoutes.Use(middleware.AuthMiddleware())
 	
 	locationRoutes.GET("/", handler.FindAll)
+	locationRoutes.GET("/history", handler.HistoryByUser)
 	locationRoutes.GET("/:id", handler.FindById)
 
 	locationRoutes.POST("/", handler.Create)

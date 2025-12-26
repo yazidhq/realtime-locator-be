@@ -18,6 +18,7 @@ type LocationInterface interface {
 	Delete(locationID uuid.UUID) (*model.Location, error)
 	FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.Location, int, error)
 	FindById(locationID uuid.UUID) (*model.Location, error)
+	HistoryByUser(userID uuid.UUID) ([]dto.LocationHistoryGroupResponse, error)
 	Truncate() (error)
 }
 
@@ -153,6 +154,32 @@ func (h LocationHandler) FindById(c *gin.Context) {
     }
 
 	responses.Success(c, "Get data successfully", response)
+}
+
+func (h LocationHandler) HistoryByUser(c *gin.Context) {
+	userIDStr := c.Query("user_id")
+	if userIDStr == "" {
+		responses.Error(c, http.StatusBadRequest, "user_id is required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
+
+	result, errResult := h.uc.HistoryByUser(userID)
+	if errResult != nil {
+		if ce, ok := errResult.(responses.CodedError); ok {
+			responses.Error(c, ce.StatusCode(), ce.Error())
+		} else {
+			responses.Error(c, http.StatusInternalServerError, errResult.Error())
+		}
+		return
+	}
+
+	responses.Success(c, "Get data successfully", result)
 }
 
 func (h *LocationHandler) Truncate(c *gin.Context) {
