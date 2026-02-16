@@ -39,11 +39,21 @@ services:
       retries: 5
 
   cache:
-    image: redis
+    image: redis:7
+    container_name: realtime-locator-redis
     ports:
       - "6379:6379"
-    environment:
-      REDIS_PASSWORD: redis
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: realtime-locator-redisinsight
+    restart: always
+    ports:
+      - "5540:5540"
+    depends_on:
+      - cache
+    volumes:
+      - redisinsight_data:/data
 
   adminer:
     image: adminer
@@ -56,3 +66,4 @@ services:
 
 volumes:
   db_data:
+  redisinsight_data:
