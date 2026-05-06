@@ -9,9 +9,9 @@ import (
 )
 
 type FilterOptions struct {
-    Field string
-    Op    string
-    Value string
+	Field string
+	Op    string
+	Value string
 }
 
 func BuildDynamicFilters(queryParams map[string][]string, allowedOps []string) []FilterOptions {
@@ -67,15 +67,14 @@ func BuildCQLFilter(filters []FilterOptions) string {
 	return strings.Join(parts, " AND ")
 }
 
-
 func ApplyDynamicFilters(db *gorm.DB, filters []FilterOptions) *gorm.DB {
-    for _, f := range filters {
-        switch f.Op {
-        case "like":
-            db = db.Where(fmt.Sprintf("%s LIKE ?", f.Field), "%"+f.Value+"%")
-        default:
-            db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
-        }
-    }
-    return db
+	for _, f := range filters {
+		switch f.Op {
+		case "like":
+			db = db.Where(fmt.Sprintf("%s LIKE ?", f.Field), "%"+f.Value+"%")
+		default:
+			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
+		}
+	}
+	return db
 }

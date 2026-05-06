@@ -7,9 +7,9 @@ import (
 )
 
 type APIResponse struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message"`
-	Data    any 		`json:"data,omitempty"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 func Success(c *gin.Context, message string, data any) {
@@ -39,7 +39,7 @@ type PaginatedResponse struct {
 	Status     string         `json:"status"`
 	Message    string         `json:"message"`
 	Pagination PaginationMeta `json:"pagination"`
-	Data       any    		  `json:"data"`
+	Data       any            `json:"data"`
 }
 
 func SuccessPaginated(c *gin.Context, message string, data any, page, limit, total int) {
@@ -50,7 +50,7 @@ func SuccessPaginated(c *gin.Context, message string, data any, page, limit, tot
 		} else {
 			pages = 0
 		}
-		
+
 		limit = total
 		page = 1
 	} else {
@@ -58,13 +58,13 @@ func SuccessPaginated(c *gin.Context, message string, data any, page, limit, tot
 	}
 
 	c.JSON(http.StatusOK, PaginatedResponse{
-		Status: "success",
+		Status:  "success",
 		Message: message,
-		Data: data,
+		Data:    data,
 		Pagination: PaginationMeta{
-			Page: page,
+			Page:  page,
 			Limit: limit,
-			Rows: total,
+			Rows:  total,
 			Pages: pages,
 		},
 	})

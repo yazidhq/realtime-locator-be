@@ -19,7 +19,7 @@ type LocationInterface interface {
 	FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.Location, int, error)
 	FindById(locationID uuid.UUID) (*model.Location, error)
 	HistoryByUser(userID uuid.UUID) ([]dto.LocationHistoryGroupResponse, error)
-	Truncate() (error)
+	Truncate() error
 }
 
 type LocationHandler struct {
@@ -33,7 +33,7 @@ func NewLocationHandler(uc LocationInterface) *LocationHandler {
 func (h LocationHandler) Create(c *gin.Context) {
 	var req dto.LocationCreateRequest
 	if errReq := c.ShouldBindJSON(&req); errReq != nil {
-		responses.Error(c, http.StatusBadRequest, "Invalid request body: " + errReq.Error())
+		responses.Error(c, http.StatusBadRequest, "Invalid request body: "+errReq.Error())
 		return
 	}
 
@@ -51,40 +51,40 @@ func (h LocationHandler) Create(c *gin.Context) {
 }
 
 func (h *LocationHandler) Update(c *gin.Context) {
-    id := c.Param("id")
+	id := c.Param("id")
 
 	locationID, err := uuid.Parse(id)
-    if err != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid UUID")
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
 
-    var req dto.LocationUpdateRequest
-    if errReq := c.ShouldBindJSON(&req); errReq != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid request body: " + errReq.Error())
-        return
-    }
+	var req dto.LocationUpdateRequest
+	if errReq := c.ShouldBindJSON(&req); errReq != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid request body: "+errReq.Error())
+		return
+	}
 
-    updated, errUpdate := h.uc.Update(locationID, &req)
-    if errUpdate != nil {
-        if ce, ok := errUpdate.(responses.CodedError); ok {
+	updated, errUpdate := h.uc.Update(locationID, &req)
+	if errUpdate != nil {
+		if ce, ok := errUpdate.(responses.CodedError); ok {
 			responses.Error(c, ce.StatusCode(), ce.Error())
 		} else {
 			responses.Error(c, http.StatusInternalServerError, errUpdate.Error())
 		}
 		return
-    }
+	}
 
-    responses.Success(c, "Updated successfully", updated)
+	responses.Success(c, "Updated successfully", updated)
 }
 
 func (h LocationHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	locationID, err := uuid.Parse(id)
-    if err != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid UUID")
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
 
 	_, errDelete := h.uc.Delete(locationID)
 	if errDelete != nil {
@@ -95,13 +95,13 @@ func (h LocationHandler) Delete(c *gin.Context) {
 		}
 		return
 	}
-	
+
 	responses.Success(c, "Deleted successfully", nil)
 }
 
 func (h LocationHandler) FindAll(c *gin.Context) {
-    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-    limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
 	allowedOps := []string{"=", "like", ">", "<"}
 	filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
@@ -110,31 +110,31 @@ func (h LocationHandler) FindAll(c *gin.Context) {
 	sorts := utils.BuildDynamicSorts(c.Request.URL.Query(), allowedFields)
 
 	locations, total, err := h.uc.FindAll(page, limit, filters, sorts)
-    if err != nil {
-        responses.Error(c, http.StatusInternalServerError, err.Error())
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-    var response []dto.LocationResponse
-    for _, u := range locations {
-        response = append(response, dto.LocationResponse{
-            ID: u.ID.String(),
-            UserID: u.UserID,
-            Latitude: u.Latitude,
-            Longitude: u.Longitude,
-        })
-    }
+	var response []dto.LocationResponse
+	for _, u := range locations {
+		response = append(response, dto.LocationResponse{
+			ID:        u.ID.String(),
+			UserID:    u.UserID,
+			Latitude:  u.Latitude,
+			Longitude: u.Longitude,
+		})
+	}
 
-    responses.SuccessPaginated(c, "Get data successfully", response, page, limit, total)
+	responses.SuccessPaginated(c, "Get data successfully", response, page, limit, total)
 }
 
 func (h LocationHandler) FindById(c *gin.Context) {
 	id := c.Param("id")
 	locationID, err := uuid.Parse(id)
-    if err != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid UUID")
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
 
 	result, errResult := h.uc.FindById(locationID)
 	if errResult != nil {
@@ -146,12 +146,12 @@ func (h LocationHandler) FindById(c *gin.Context) {
 		return
 	}
 
-	response := dto.LocationResponse {
-        ID: result.ID.String(),
-		UserID: result.UserID,
-		Latitude: result.Latitude,
+	response := dto.LocationResponse{
+		ID:        result.ID.String(),
+		UserID:    result.UserID,
+		Latitude:  result.Latitude,
 		Longitude: result.Longitude,
-    }
+	}
 
 	responses.Success(c, "Get data successfully", response)
 }

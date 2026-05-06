@@ -12,24 +12,24 @@ import (
 )
 
 type LocationUsecase struct {
-	repo repository.LocationRepository
+	repo     repository.LocationRepository
 	repoUser repository.UserRepository
 }
 
 func NewLocationUsecase(
 	r *repository.LocationRepository,
 	ru *repository.UserRepository,
-	) *LocationUsecase {
+) *LocationUsecase {
 	return &LocationUsecase{
-		repo: *r,
+		repo:     *r,
 		repoUser: *ru,
 	}
 }
 
 func (u *LocationUsecase) Create(req *dto.LocationCreateRequest) (*model.Location, error) {
 	location := &model.Location{
-		UserID: req.UserID,
-		Latitude: req.Latitude,
+		UserID:    req.UserID,
+		Latitude:  req.Latitude,
 		Longitude: req.Longitude,
 	}
 
@@ -41,14 +41,14 @@ func (u *LocationUsecase) Create(req *dto.LocationCreateRequest) (*model.Locatio
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return created, nil
 }
 
 func (u *LocationUsecase) Update(locationID uuid.UUID, req *dto.LocationUpdateRequest) (*model.Location, error) {
 	location := &model.Location{
-		UserID: req.UserID,
-		Latitude: req.Latitude,
+		UserID:    req.UserID,
+		Latitude:  req.Latitude,
 		Longitude: req.Longitude,
 	}
 
@@ -74,7 +74,7 @@ func (u *LocationUsecase) Delete(locationID uuid.UUID) (*model.Location, error) 
 	if _, err := u.repo.FindById(locationID); err != nil {
 		return nil, responses.NewNotFoundError("location not found")
 	}
-	
+
 	deleted, err := u.repo.Delete(locationID)
 	if err != nil {
 		return nil, err
@@ -85,10 +85,10 @@ func (u *LocationUsecase) Delete(locationID uuid.UUID) (*model.Location, error) 
 
 func (u *LocationUsecase) FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.Location, int, error) {
 	result, total, err := u.repo.FindAll(page, limit, filters, sorts)
-    if err != nil {
-        return nil, 0, err
-    }
-    return result, total, nil
+	if err != nil {
+		return nil, 0, err
+	}
+	return result, total, nil
 }
 
 func (u *LocationUsecase) FindById(locationID uuid.UUID) (*model.Location, error) {

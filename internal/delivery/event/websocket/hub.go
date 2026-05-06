@@ -9,20 +9,20 @@ import (
 )
 
 type BroadcastMessage struct {
-    SenderID uuid.UUID
-    IsAdmin  bool
-    Payload  []byte
+	SenderID uuid.UUID
+	IsAdmin  bool
+	Payload  []byte
 }
 
 type Hub struct {
-	Clients      map[uuid.UUID]*Client
-	Broadcast    chan BroadcastMessage
-	Register     chan *Client
-	Unregister   chan *Client
-	flushTickers map[uuid.UUID]*time.Ticker
-	locationRepo *_repo.LocationRepository
-	Online 		 map[uuid.UUID]bool
-	offlineGrace map[uuid.UUID]time.Time
+	Clients       map[uuid.UUID]*Client
+	Broadcast     chan BroadcastMessage
+	Register      chan *Client
+	Unregister    chan *Client
+	flushTickers  map[uuid.UUID]*time.Ticker
+	locationRepo  *_repo.LocationRepository
+	Online        map[uuid.UUID]bool
+	offlineGrace  map[uuid.UUID]time.Time
 	offlineTicker *time.Ticker
 }
 
@@ -31,13 +31,13 @@ var hubInstance *Hub
 func GetHub() *Hub {
 	if hubInstance == nil {
 		hubInstance = &Hub{
-			Clients: make(map[uuid.UUID]*Client),
-			Broadcast: make(chan BroadcastMessage),
-			Register: make(chan *Client),
-			Unregister: make(chan *Client),
-			flushTickers: make(map[uuid.UUID]*time.Ticker),
-			Online: make(map[uuid.UUID]bool),
-			offlineGrace: make(map[uuid.UUID]time.Time),
+			Clients:       make(map[uuid.UUID]*Client),
+			Broadcast:     make(chan BroadcastMessage),
+			Register:      make(chan *Client),
+			Unregister:    make(chan *Client),
+			flushTickers:  make(map[uuid.UUID]*time.Ticker),
+			Online:        make(map[uuid.UUID]bool),
+			offlineGrace:  make(map[uuid.UUID]time.Time),
 			offlineTicker: time.NewTicker(1 * time.Second),
 		}
 
@@ -71,26 +71,26 @@ func (h *Hub) Run() {
 			delete(h.offlineGrace, client.UserID)
 
 			h.Online[client.UserID] = true
-            status := UserStatusMessage{
-                Type:   "user_status",
-                UserID: client.UserID,
-                Online: true,
-            }
+			status := UserStatusMessage{
+				Type:   "user_status",
+				UserID: client.UserID,
+				Online: true,
+			}
 
-            if b, err := json.Marshal(status); err == nil {
-                for _, c := range h.Clients {
-                    select {
-                    case c.Send <- b:
-                    default:
+			if b, err := json.Marshal(status); err == nil {
+				for _, c := range h.Clients {
+					select {
+					case c.Send <- b:
+					default:
 						if c.Conn != nil {
 							c.Conn.Close()
 						}
 						safeCloseSend(c.Send)
-                        delete(h.Clients, c.UserID)
-                        h.StopFlushLoop(c.UserID, true)
-                    }
-                }
-            }
+						delete(h.Clients, c.UserID)
+						h.StopFlushLoop(c.UserID, true)
+					}
+				}
+			}
 
 		case client := <-h.Unregister:
 			if client == nil || client.UserID == uuid.Nil {

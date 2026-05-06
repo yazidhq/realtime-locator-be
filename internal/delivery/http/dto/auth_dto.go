@@ -21,30 +21,30 @@ type LoginRequest struct {
 }
 
 type RefreshTokenRequest struct {
-    RefreshToken string `json:"refresh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
 type RegisterResponse struct {
-	ID       	 uuid.UUID  `json:"id"`
-	Role     	 model.Role `json:"role"`
-	Name     	 string     `json:"name"`
-	Username 	 string     `json:"username"`
-	Email    	 string     `json:"email"`
-	PhoneNumber	 string     `json:"phone_number"`
+	ID           uuid.UUID  `json:"id"`
+	Role         model.Role `json:"role"`
+	Name         string     `json:"name"`
+	Username     string     `json:"username"`
+	Email        string     `json:"email"`
+	PhoneNumber  string     `json:"phone_number"`
 	AccessToken  string     `json:"access_token"`
 	RefreshToken string     `json:"refresh_token"`
 }
 
 type LoginResponse struct {
-    ID       	 uuid.UUID  `json:"id"`
-    Name       	 string	    `json:"name"`
-    Email        string	    `json:"email"`
-    PhoneNumber	 string	    `json:"phone_number"`
-    AccessToken	 string     `json:"access_token"`
-    RefreshToken string     `json:"refresh_token"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	PhoneNumber  string    `json:"phone_number"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 type RefreshTokenResponse struct {
-    AccessToken        string `json:"access_token"`
-    RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }

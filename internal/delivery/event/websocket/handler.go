@@ -15,7 +15,7 @@ type RealtimeHubHandler struct {
 }
 
 func NewRealtimeHubHandler(ru *repository.UserRepository) *RealtimeHubHandler {
-	return &RealtimeHubHandler{ repoUser: *ru }
+	return &RealtimeHubHandler{repoUser: *ru}
 }
 
 func (u *RealtimeHubHandler) RealtimeHub(c *gin.Context) {
@@ -25,8 +25,8 @@ func (u *RealtimeHubHandler) RealtimeHub(c *gin.Context) {
 		responses.Error(c, http.StatusBadRequest, "user id is required")
 		return
 	}
-	
-	userIDParse, errUserID := uuid.Parse(userID);
+
+	userIDParse, errUserID := uuid.Parse(userID)
 	if errUserID != nil {
 		responses.Error(c, http.StatusBadRequest, "invalid user id, must be uuid type")
 		return
@@ -58,19 +58,19 @@ func (u *RealtimeHubHandler) RealtimeHub(c *gin.Context) {
 }
 
 func (h *RealtimeHubHandler) GetUserOnlineStatus(c *gin.Context) {
-    userID := c.Param("id")
+	userID := c.Param("id")
 
-    userIDParse, err := uuid.Parse(userID)
-    if err != nil {
+	userIDParse, err := uuid.Parse(userID)
+	if err != nil {
 		responses.Error(c, http.StatusBadRequest, "invalid user id")
-        return
-    }
+		return
+	}
 
 	online := GetHub().IsOnline(userIDParse)
 	response := map[string]any{
-        "user_id": userIDParse.String(),
-        "online":  online,
-    }
+		"user_id": userIDParse.String(),
+		"online":  online,
+	}
 
 	responses.Success(c, "Nice!", response)
 }
@@ -84,15 +84,15 @@ func (h *RealtimeHubHandler) GetAllOnlineUsers(c *gin.Context) {
 }
 
 func (h *Hub) IsOnline(userID uuid.UUID) bool {
-    return h.Online[userID]
+	return h.Online[userID]
 }
 
 func (h *Hub) GetAllOnlineUsers() []uuid.UUID {
-    var onlineUsers []uuid.UUID
-    for userID, online := range h.Online {
-        if online {
-            onlineUsers = append(onlineUsers, userID)
-        }
-    }
-    return onlineUsers
+	var onlineUsers []uuid.UUID
+	for userID, online := range h.Online {
+		if online {
+			onlineUsers = append(onlineUsers, userID)
+		}
+	}
+	return onlineUsers
 }

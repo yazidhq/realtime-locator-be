@@ -44,10 +44,10 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		var meta struct{
+		var meta struct {
 			Type string `json:"type"`
 		}
-		
+
 		if err := json.Unmarshal(msg, &meta); err != nil {
 			continue
 		}

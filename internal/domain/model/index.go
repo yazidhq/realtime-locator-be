@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	Role           string
+	Role string
 )
 
 const (

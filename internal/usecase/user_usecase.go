@@ -20,24 +20,24 @@ func NewUserUsecase(r *repository.UserRepository) *UserUsecase {
 
 func (u *UserUsecase) Create(req *dto.UserCreateRequest) (*model.User, error) {
 	user := &model.User{
-		Role: model.Role(req.Role),
-		Name: req.Name,
-		Username: req.Username,
-		Email: req.Email,
+		Role:        model.Role(req.Role),
+		Name:        req.Name,
+		Username:    req.Username,
+		Email:       req.Email,
 		PhoneNumber: req.PhoneNumber,
-		Password: req.Password,
+		Password:    req.Password,
 	}
 
 	existingEmail, _ := u.repo.FindByEmail(user.Email)
 	if existingEmail != nil {
 		return nil, responses.NewBadRequestError("email already exist")
 	}
-	
+
 	existingUsername, _ := u.repo.FindByUsername(user.Username)
 	if existingUsername != nil {
 		return nil, responses.NewBadRequestError("username already exist")
 	}
-	
+
 	existingPhoneNumber, _ := u.repo.FindByPhoneNumber(user.PhoneNumber)
 	if existingPhoneNumber != nil {
 		return nil, responses.NewBadRequestError("phone number already exist")
@@ -53,18 +53,18 @@ func (u *UserUsecase) Create(req *dto.UserCreateRequest) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return created, nil
 }
 
 func (u *UserUsecase) Update(userID uuid.UUID, req *dto.UserUpdateRequest) (*model.User, error) {
 	user := &model.User{
-		Role: model.Role(req.Role),
-		Name: req.Name,
-		Username: req.Username,
-		Email: req.Email,
+		Role:        model.Role(req.Role),
+		Name:        req.Name,
+		Username:    req.Username,
+		Email:       req.Email,
 		PhoneNumber: req.PhoneNumber,
-		Password: req.Password,
+		Password:    req.Password,
 	}
 
 	if _, err := u.repo.FindById(userID); err != nil {
@@ -77,21 +77,21 @@ func (u *UserUsecase) Update(userID uuid.UUID, req *dto.UserUpdateRequest) (*mod
 			return nil, responses.NewBadRequestError("email already exists")
 		}
 	}
-	
+
 	if user.Username != "" {
 		existingUsername, _ := u.repo.FindByUsername(user.Username)
 		if existingUsername != nil && existingUsername.ID != userID {
 			return nil, responses.NewBadRequestError("username already exists")
 		}
 	}
-	
+
 	if user.PhoneNumber != "" {
 		existingPhoneNumber, _ := u.repo.FindByPhoneNumber(user.PhoneNumber)
 		if existingPhoneNumber != nil && existingPhoneNumber.ID != userID {
 			return nil, responses.NewBadRequestError("phone number already exists")
 		}
 	}
-	
+
 	if user.Password != "" {
 		hashedPassword, errHash := utils.HashPassword(user.Password)
 		if errHash != nil {
@@ -112,7 +112,7 @@ func (u *UserUsecase) Delete(userID uuid.UUID) (*model.User, error) {
 	if _, err := u.repo.FindById(userID); err != nil {
 		return nil, responses.NewNotFoundError("user not found")
 	}
-	
+
 	deleted, err := u.repo.Delete(userID)
 	if err != nil {
 		return nil, err
@@ -123,10 +123,10 @@ func (u *UserUsecase) Delete(userID uuid.UUID) (*model.User, error) {
 
 func (u *UserUsecase) FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.User, int, error) {
 	result, total, err := u.repo.FindAll(page, limit, filters, sorts)
-    if err != nil {
-        return nil, 0, err
-    }
-    return result, total, nil
+	if err != nil {
+		return nil, 0, err
+	}
+	return result, total, nil
 }
 
 func (u *UserUsecase) FindById(userID uuid.UUID) (*model.User, error) {

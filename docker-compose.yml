@@ -2,68 +2,49 @@ version: "3.9"
 
 services:
   app:
-    build: .
-    container_name: realtime-locator-be
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: be-guard-monitor:latest
+    container_name: be-guard-monitor
     ports:
-      - "3005:3000"
-    depends_on:
-      db:
-        condition: service_healthy
+      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
+    env_file:
+      - .env
     environment:
-      - APP_PORT=3000
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=db_realtime_locator
-      - DB_PORT=5432
-      - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9
-      - JWT_EXPIRES_IN=24h
+      DB_HOST: postgres
+      REDIS_HOST: redis
     volumes:
       - ./tmp:/app/tmp
-
-  db:
-    image: postgres:16
-    restart: always
-    environment:
-      POSTGRES_DB: db_realtime_locator
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5435:5432"
+      - ./logs:/app/logs
+    networks:
+      - guard-monitor-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db_realtime_locator"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${APP_PORT:-3000}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
-  cache:
-    image: redis:7
-    container_name: realtime-locator-redis
-    ports:
-      - "6379:6379"
-
-  redisinsight:
-    image: redis/redisinsight:latest
-    container_name: realtime-locator-redisinsight
-    restart: always
-    ports:
-      - "5540:5540"
-    depends_on:
-      - cache
-    volumes:
-      - redisinsight_data:/data
-
-  adminer:
-    image: adminer
-    container_name: realtime-locator-adminer
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - db
-
-volumes:
-  db_data:
-  redisinsight_data:
+networks:
+  guard-monitor-net:
+    driver: bridge

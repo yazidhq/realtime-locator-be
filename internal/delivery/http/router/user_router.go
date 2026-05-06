@@ -17,7 +17,7 @@ func InitUserRoutes(r *gin.Engine, db *gorm.DB) {
 
 	userRoutes := r.Group("/api/user")
 	userRoutes.Use(middleware.AuthMiddleware())
-	
+
 	userRoutes.GET("/", handler.FindAll)
 	userRoutes.GET("/:id", handler.FindById)
 
@@ -25,7 +25,7 @@ func InitUserRoutes(r *gin.Engine, db *gorm.DB) {
 
 	userRoutes.POST("/", handler.Create)
 	userRoutes.PATCH("/:id", handler.Update)
-	
+
 	userRoutes.DELETE("/:id", handler.Delete)
 	userRoutes.DELETE("/truncate", handler.Truncate)
 }

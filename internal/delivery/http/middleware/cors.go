@@ -8,19 +8,19 @@ import (
 )
 
 func CorsMiddleware() gin.HandlerFunc {
-    return cors.New(cors.Config{
-        AllowOrigins: []string{"http://localhost:3000", "http://127.0.0.1:3000", "*"},
-        AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-        AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
-        ExposeHeaders: []string{"Content-Length", "Authorization"},
-        AllowCredentials: true,
-        MaxAge: 12 * time.Hour,
-    })
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000", "*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	})
 }
 
 func SecurityHeaders() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        c.Writer.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
-        c.Next()
-    }
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
+		c.Next()
+	}
 }

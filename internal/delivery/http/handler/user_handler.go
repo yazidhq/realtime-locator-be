@@ -18,7 +18,7 @@ type UserInterface interface {
 	Delete(userID uuid.UUID) (*model.User, error)
 	FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.User, int, error)
 	FindById(userID uuid.UUID) (*model.User, error)
-	Truncate() (error)
+	Truncate() error
 }
 
 type UserHandler struct {
@@ -32,7 +32,7 @@ func NewUserHandler(uc UserInterface) *UserHandler {
 func (h UserHandler) Create(c *gin.Context) {
 	var req dto.UserCreateRequest
 	if errReq := c.ShouldBindJSON(&req); errReq != nil {
-		responses.Error(c, http.StatusBadRequest, "Invalid request body: " + errReq.Error())
+		responses.Error(c, http.StatusBadRequest, "Invalid request body: "+errReq.Error())
 		return
 	}
 
@@ -50,40 +50,40 @@ func (h UserHandler) Create(c *gin.Context) {
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
-    id := c.Param("id")
+	id := c.Param("id")
 
 	userID, err := uuid.Parse(id)
-    if err != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid UUID")
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
 
-    var req dto.UserUpdateRequest
-    if errReq := c.ShouldBindJSON(&req); errReq != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid request body: " + errReq.Error())
-        return
-    }
+	var req dto.UserUpdateRequest
+	if errReq := c.ShouldBindJSON(&req); errReq != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid request body: "+errReq.Error())
+		return
+	}
 
-    updated, errUpdate := h.uc.Update(userID, &req)
-    if errUpdate != nil {
-        if ce, ok := errUpdate.(responses.CodedError); ok {
+	updated, errUpdate := h.uc.Update(userID, &req)
+	if errUpdate != nil {
+		if ce, ok := errUpdate.(responses.CodedError); ok {
 			responses.Error(c, ce.StatusCode(), ce.Error())
 		} else {
 			responses.Error(c, http.StatusInternalServerError, errUpdate.Error())
 		}
 		return
-    }
+	}
 
-    responses.Success(c, "Updated successfully", updated)
+	responses.Success(c, "Updated successfully", updated)
 }
 
 func (h UserHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	userID, err := uuid.Parse(id)
-    if err != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid UUID")
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
 
 	_, errDelete := h.uc.Delete(userID)
 	if errDelete != nil {
@@ -94,13 +94,13 @@ func (h UserHandler) Delete(c *gin.Context) {
 		}
 		return
 	}
-	
+
 	responses.Success(c, "Deleted successfully", nil)
 }
 
 func (h UserHandler) FindAll(c *gin.Context) {
-    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-    limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
 	allowedOps := []string{"=", "like", ">", "<"}
 	filters := utils.BuildDynamicFilters(c.Request.URL.Query(), allowedOps)
@@ -109,33 +109,33 @@ func (h UserHandler) FindAll(c *gin.Context) {
 	sorts := utils.BuildDynamicSorts(c.Request.URL.Query(), allowedFields)
 
 	users, total, err := h.uc.FindAll(page, limit, filters, sorts)
-    if err != nil {
-        responses.Error(c, http.StatusInternalServerError, err.Error())
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-    var response []dto.UserResponse
-    for _, u := range users {
-        response = append(response, dto.UserResponse{
-            ID: u.ID.String(),
-			Role: string(u.Role),
-            Name: u.Name,
-            Username: u.Username,
-            Email: u.Email,
-            PhoneNumber: u.PhoneNumber,
-        })
-    }
+	var response []dto.UserResponse
+	for _, u := range users {
+		response = append(response, dto.UserResponse{
+			ID:          u.ID.String(),
+			Role:        string(u.Role),
+			Name:        u.Name,
+			Username:    u.Username,
+			Email:       u.Email,
+			PhoneNumber: u.PhoneNumber,
+		})
+	}
 
-    responses.SuccessPaginated(c, "Get data successfully", response, page, limit, total)
+	responses.SuccessPaginated(c, "Get data successfully", response, page, limit, total)
 }
 
 func (h UserHandler) FindById(c *gin.Context) {
 	id := c.Param("id")
 	userID, err := uuid.Parse(id)
-    if err != nil {
-        responses.Error(c, http.StatusBadRequest, "Invalid UUID")
-        return
-    }
+	if err != nil {
+		responses.Error(c, http.StatusBadRequest, "Invalid UUID")
+		return
+	}
 
 	result, errResult := h.uc.FindById(userID)
 	if errResult != nil {
@@ -147,14 +147,14 @@ func (h UserHandler) FindById(c *gin.Context) {
 		return
 	}
 
-	response := dto.UserResponse {
-        ID: result.ID.String(),
-		Role: string(result.Role),
-        Name: result.Name,
-        Username: result.Username,
-        Email: result.Email,
-        PhoneNumber: result.PhoneNumber,
-    }
+	response := dto.UserResponse{
+		ID:          result.ID.String(),
+		Role:        string(result.Role),
+		Name:        result.Name,
+		Username:    result.Username,
+		Email:       result.Email,
+		PhoneNumber: result.PhoneNumber,
+	}
 
 	responses.Success(c, "Get data successfully", response)
 }

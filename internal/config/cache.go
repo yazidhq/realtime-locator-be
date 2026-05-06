@@ -20,9 +20,9 @@ func SetupCache() {
 	}
 
 	RedisClient = redis.NewClient(&redis.Options{
-		Addr: env.Host+":"+env.Port,
+		Addr:     env.Host + ":" + env.Port,
 		Password: env.Password,
-		DB: db,
+		DB:       db,
 	})
 
 	if _, err := RedisClient.Ping(Ctx).Result(); err != nil {

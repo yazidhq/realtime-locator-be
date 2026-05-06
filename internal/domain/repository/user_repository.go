@@ -29,27 +29,27 @@ func (r *UserRepository) BulkCreate(users []model.User) error {
 	if len(users) == 0 {
 		return nil
 	}
-	
+
 	return r.db.CreateInBatches(&users, 200).Error
 }
 
 func (r *UserRepository) Update(userID uuid.UUID, req model.User) (*model.User, error) {
-    var user model.User
+	var user model.User
 
-    if err := r.db.
+	if err := r.db.
 		First(&user, userID).
 		Error; err != nil {
-			return nil, err
-		}
+		return nil, err
+	}
 
-    if err := r.db.
+	if err := r.db.
 		Model(&user).
 		Updates(req).
 		Error; err != nil {
-			return nil, err
-		}
+		return nil, err
+	}
 
-    return &user, nil
+	return &user, nil
 }
 
 func (r *UserRepository) Delete(userID uuid.UUID) (*model.User, error) {
@@ -65,34 +65,34 @@ func (r *UserRepository) Delete(userID uuid.UUID) (*model.User, error) {
 }
 
 func (r *UserRepository) FindAll(page, limit int, filters []utils.FilterOptions, sorts []utils.SortOption) ([]model.User, int, error) {
-    var users []model.User
-    var total int64
+	var users []model.User
+	var total int64
 
-    db := r.db.
+	db := r.db.
 		Model(&model.User{})
 
-    db = utils.ApplyDynamicFilters(db, filters)
+	db = utils.ApplyDynamicFilters(db, filters)
 
-    if err := db.Count(&total).Error; err != nil {
-        return nil, 0, err
-    }
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 
-    if page <= 0 {
-        page = 1
-    }
+	if page <= 0 {
+		page = 1
+	}
 
 	db = utils.ApplyDynamicSort(db, sorts, "created_at DESC")
 
 	if limit > 0 {
-        offset := (page - 1) * limit
-        db = db.Offset(offset).Limit(limit)
-    }
+		offset := (page - 1) * limit
+		db = db.Offset(offset).Limit(limit)
+	}
 
 	if err := db.Find(&users).Error; err != nil {
-        return nil, 0, err
-    }
+		return nil, 0, err
+	}
 
-    return users, int(total), nil
+	return users, int(total), nil
 }
 
 func (r *UserRepository) FindById(userID uuid.UUID) (*model.User, error) {
@@ -101,15 +101,15 @@ func (r *UserRepository) FindById(userID uuid.UUID) (*model.User, error) {
 	err := r.db.
 		First(&user, userID).
 		Error
-		
+
 	return &user, err
 }
 
 func (r *UserRepository) Truncate() error {
-    var user model.User
+	var user model.User
 
 	err := r.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&user).Error
-    
+
 	return err
 }
 
@@ -121,7 +121,7 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 		First(&user).
 		Error
 
-	if errors.Is(err, gorm.ErrRecordNotFound){
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
@@ -136,7 +136,7 @@ func (r *UserRepository) FindByUsername(username string) (*model.User, error) {
 		First(&user).
 		Error
 
-	if errors.Is(err, gorm.ErrRecordNotFound){
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 

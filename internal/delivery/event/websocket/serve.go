@@ -17,14 +17,14 @@ func ServeWs(w http.ResponseWriter, r *http.Request, user *model.User) {
 	if err != nil {
 		return
 	}
-	
+
 	hub := GetHub()
 	client := &Client{
-		ID: r.RemoteAddr,
+		ID:     r.RemoteAddr,
 		UserID: user.ID,
-		Role: string(user.Role),
-		Conn: conn,
-		Send: make(chan []byte, 256),
+		Role:   string(user.Role),
+		Conn:   conn,
+		Send:   make(chan []byte, 256),
 		HubRef: hub,
 	}
 
@@ -33,7 +33,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request, user *model.User) {
 	// Send list of all online users to the new client
 	onlineUsers := hub.GetAllOnlineUsers()
 	onlineMsg := OnlineUsersMessage{
-		Type: "online_users_list",
+		Type:  "online_users_list",
 		Users: onlineUsers,
 	}
 
